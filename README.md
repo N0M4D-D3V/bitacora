@@ -2,174 +2,133 @@
   <img src="images/bitacora.png" width=250 height=250/>
 </div>
 
-Deterministic project memory system for agents.
+Bitacora is a deterministic project memory CLI for agent-driven workflows. It stores project context in files, validates structure, and keeps state rebuildable.
 
-Bitacora keeps project state in files (`bitacora/`), validates structure strictly, and rebuilds state reproducibly.
-
-## Requirements
-
-- Node.js 20+ (recommended)
-- npm 10+
-
-## Set up local environment
+## Install
 
 ```bash
-npm install
+npm i -g bitacora
 ```
 
-## Local development
+## Usage
 
-Run the test suite:
-
-```bash
-npm test
-```
-
-Watch mode for tests:
+Show help:
 
 ```bash
-npm run test:watch
-```
-
-Strict type checking:
-
-```bash
-npm run typecheck
-```
-
-## Build
-
-Compile TypeScript to `dist/`:
-
-```bash
-npm run build
-```
-
-Main output:
-
-- `dist/src/cli.js` (CLI)
-- `dist/src/index.js` (API)
-
-## Run CLI
-
-From TypeScript (without building):
-
-```bash
-npm run start -- --help
-```
-
-From compiled output:
-
-```bash
-node dist/src/cli.js --help
-```
-
-## Build and use the CLI binary
-
-This project exposes the `bitacora` command through `package.json#bin`, pointing to `dist/src/cli.js`.
-
-### Option 1: global development binary (`npm link`)
-
-```bash
-npm run build
-npm link
 bitacora --help
 ```
 
-To remove the global link:
+Typical flow:
 
 ```bash
-npm unlink -g bitacora
+# init bitacora files structure and add SKILL
+bitacora init
+
+# ask your agent to complete bitacora
+# whith your project info. You can
+# complete bitacora by yourself if you wish.
+codex "$bitacora read and fill bitacora template with this project info"
+
+# plan some tasks
+codex (planner )"$bitacora plan the unit test for this repo and add separated tasks to bitacora"
+
+# use another agent
+codex "$bitacora implement the 003 track"
 ```
 
-### Option 2: installable package (`npm pack`)
+Use `--root <path>` on any command to target a different project directory.
 
-```bash
-npm run build
-npm pack
-```
+## What Each Bitacora File Stores
 
-Then install the generated `.tgz`:
+- `bitacora/index.md`: memory map and session read order.
+- `bitacora/product.md`: project goals, scope, constraints, and non-goals.
+- `bitacora/tech-stack.md`: runtime/tooling/dependencies and technical rules.
+- `bitacora/workflow.md`: development method, quality gates, and handoff checklist.
+- `bitacora/ux-style-guide.md`: visual tokens and UX interaction rules.
+- `bitacora/tracks/tracks.md`: canonical track registry, current snapshot, and handoff summary.
+- `bitacora/tracks/TRACK-*/track.md`: per-track plan, tasks, decisions, and timestamped log.
+- `.agents/skills/bitacora/SKILL.md`: instructions agents follow to keep the memory system updated.
 
-```bash
-npm install -g ./bitacora-1.0.0.tgz
-bitacora --help
-```
+## How Agents Read and Update Bitacora
 
-## CLI commands
+Recommended memory read order for agents:
 
-```bash
-bitacora init [--force] [--root <path>]
-bitacora new-track [trackId] [--status <status>] [--priority <priority>] [--root <path>]
-bitacora validate [--json] [--root <path>]
-bitacora rebuild-state [--root <path>]
-bitacora log --track-id <TRACK-###> --message <text> [--root <path>]
-```
+1. `bitacora/index.md`
+2. `bitacora/product.md`
+3. `bitacora/tech-stack.md`
+4. `bitacora/workflow.md`
+5. `bitacora/ux-style-guide.md`
+6. `bitacora/tracks/tracks.md`
+7. Active files in `bitacora/tracks/TRACK-*/track.md`
 
-## Quick flow
+Typical agent write operations:
 
-Initialize memory:
+- `bitacora new-track`: create a new work unit.
+- `bitacora log --track-id ... --message ...`: append progress updates.
+- direct updates to `bitacora/tracks/TRACK-*/track.md`: tasks, decisions, execution details.
+- direct updates to `bitacora/tracks/tracks.md`: canonical project status and next action.
+- `bitacora validate` and `bitacora rebuild-state`: ensure memory remains valid and deterministic.
 
-```bash
-bitacora init --root .
-```
+## Agent Skill Integration
 
-Create a sequential track:
-
-```bash
-bitacora new-track --root .
-```
-
-Validate structure:
-
-```bash
-bitacora validate --root .
-```
-
-Add a log entry to a track:
-
-```bash
-bitacora log --track-id TRACK-001 --message "implementation completed" --root .
-```
-
-Revalidate memory and deterministic state:
-
-```bash
-bitacora rebuild-state --root .
-```
-
-## Exit codes
-
-- `0`: successful execution
-- `1`: validation error (structure or invalid input)
-- `2`: unexpected runtime error
-
-## Main generated structure
+When you run `bitacora init`, Bitacora also creates an agent skill at:
 
 ```text
-bitacora/
-  index.md
-  product.md
-  tech-stack.md
-  workflow.md
-  ux-style-guide.md
-  tracks/
-    tracks.md
-    tracks-template.md
-    TRACK-001/
-      track.md
-.agents/
-  skills/
-    bitacora/
-      SKILL.md
+.agents/skills/bitacora/SKILL.md
 ```
 
-`bitacora/index.md` and `bitacora/workflow.md` include mandatory session rules (read memory at the beginning and write handoff updates at the end).
+This skill guides agents to keep memory updated during implementation:
 
-## Run everything before publishing changes
+- Read project memory before coding.
+- Create and update tracks as work progresses.
+- Log decisions and progress.
+- Keep a consistent handoff summary in `bitacora/tracks/tracks.md`.
 
-```bash
-npm test
-npm run typecheck
-npm run build
-```
+## Commands
+
+### `bitacora init [--force] [--root <path>]`
+
+Creates the `bitacora/` memory structure in the project root.
+
+- `--force`: recreates memory files if they already exist.
+- `--root <path>`: sets the project root (default: current directory).
+
+### `bitacora new-track [trackId] [--status <status>] [--priority <priority>] [--root <path>]`
+
+Creates a new track file. If `trackId` is omitted, Bitacora picks the next sequential ID.
+
+- `trackId`: optional explicit track ID (example: `TRACK-010`).
+- `--status <status>`: sets the initial track status.
+- `--priority <priority>`: sets the initial track priority.
+- `--root <path>`: sets the project root.
+
+### `bitacora log --track-id <trackId> --message <text> [--root <path>]`
+
+Appends a timestamped log entry to an existing track.
+
+- `--track-id <trackId>`: required track identifier.
+- `--message <text>`: required log message.
+- `--root <path>`: sets the project root.
+
+### `bitacora validate [--json] [--root <path>]`
+
+Validates the Bitacora file/folder structure and reports errors.
+
+- `--json`: prints validation output as JSON.
+- `--root <path>`: sets the project root.
+
+### `bitacora rebuild-state [--root <path>]`
+
+Revalidates memory and confirms deterministic state can be rebuilt from tracks.
+
+- `--root <path>`: sets the project root.
+
+## Exit Codes
+
+- `0`: success
+- `1`: validation or input error
+- `2`: unexpected runtime error
+
+## Development
+
+Internal development documentation is in `README-DEV.md`.
