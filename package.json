@@ -1,0 +1,36 @@
+{
+  "name": "bitacora",
+  "version": "1.0.0",
+  "description": "Deterministic agent-oriented project memory system. Provides structured Markdown-based long-term memory, strict validation, state reconstruction, and an enforcement CLI with agent skill integration to guide and limit agent behavior.",
+  "keywords": [
+    "bitacora",
+    "deterministic",
+    "memory",
+    "cli",
+    "agent"
+  ],
+  "license": "MIT",
+  "author": "SK3L3TØR",
+  "type": "commonjs",
+  "main": "dist/src/index.js",
+  "bin": {
+    "bitacora": "dist/src/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run",
+    "start": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  }
+}

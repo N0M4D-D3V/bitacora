@@ -1,0 +1,6 @@
+.agents/*
+node_modules/*
+dist/*
+
+package-lock.json
+skills-lock.json
