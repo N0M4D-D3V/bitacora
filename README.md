@@ -1,13 +1,9 @@
-<div style="text-align:center;">
-  <img src="images/bitacora.png" width=250 height=250/>
-</div>
-
 Bitacora is a deterministic project memory CLI for agent-driven workflows. It stores project context in files, validates structure, and keeps state rebuildable.
 
 ## Install
 
 ```bash
-npm i -g bitacora
+npm i -g bitacora-cli
 ```
 
 ## Usage
