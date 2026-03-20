@@ -99,6 +99,9 @@ export function parseTrackMarkdown(markdown: string): ParsedTrackMarkdown {
   const trackId = getRequiredField("track_id");
   const createdAt = getRequiredField("created_at");
   const updatedAt = getRequiredField("updated_at");
+  const completionRaw = frontmatter.completion;
+  const compactedAtRaw = frontmatter.compacted_at;
+  const historyPathRaw = frontmatter.history_path;
 
   if (!TRACK_STATUSES.includes(status as TrackStatus)) {
     throw new Error("Invalid status");
@@ -115,13 +118,25 @@ export function parseTrackMarkdown(markdown: string): ParsedTrackMarkdown {
     }
   }
 
+  let completion: number | undefined;
+  if (completionRaw !== undefined) {
+    const parsedCompletion = Number.parseInt(completionRaw, 10);
+    if (!Number.isInteger(parsedCompletion)) {
+      throw new Error("Invalid completion");
+    }
+    completion = parsedCompletion;
+  }
+
   return {
     frontmatter: {
       track_id: trackId,
       status: status as TrackStatus,
       priority: priority as TrackPriority,
       created_at: createdAt,
-      updated_at: updatedAt
+      updated_at: updatedAt,
+      ...(completion !== undefined ? { completion } : {}),
+      ...(compactedAtRaw !== undefined ? { compacted_at: compactedAtRaw } : {}),
+      ...(historyPathRaw !== undefined ? { history_path: historyPathRaw } : {})
     },
     sections: {
       overview: sections.overview ?? "",

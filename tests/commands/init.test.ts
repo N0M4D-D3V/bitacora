@@ -31,6 +31,7 @@ describe("runInitCommand", () => {
     expect(fs.existsSync(path.join(rootDir, "bitacora", "workflow.md"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "ux-style-guide.md"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "index.md"))).toBe(true);
+    expect(fs.existsSync(path.join(rootDir, "bitacora", "history"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "tracks", "tracks.md"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "tracks", "tracks-template.md"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "tracks", "TRACK-001", "track.md"))).toBe(true);

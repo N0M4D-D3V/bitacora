@@ -21,7 +21,7 @@
 - Visualization API contracts (`history` endpoints + live stream) remain deterministic under tests.
 
 ## Handoff Rules
-- Update `conductor/tracks.md` after meaningful changes.
+- Update `tracks/tracks.md` after meaningful changes.
 - Update affected `TRACK-*/metadata.json`.
 - Record tests run and current TDD phase.
 - Record blockers/assumptions and the single best next step.

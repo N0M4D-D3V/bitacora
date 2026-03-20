@@ -129,6 +129,31 @@ function validateUpdatedAtAgainstLogEntries(tracks: ParsedTrackFile[], errors: s
   }
 }
 
+function validateCompactionMetadata(rootDir: string, tracks: ParsedTrackFile[], errors: string[]): void {
+  for (const track of tracks) {
+    const { completion, status, history_path: historyPath } = track.frontmatter;
+    if (completion !== undefined && (completion < 0 || completion > 100)) {
+      errors.push(`Invalid completion value for ${track.frontmatter.track_id}: ${completion}`);
+    }
+
+    if (status === "completed" && completion !== undefined && completion !== 100) {
+      errors.push(`Completed track must have completion 100: ${track.frontmatter.track_id}`);
+    }
+
+    if (track.frontmatter.compacted_at !== undefined) {
+      if (!historyPath) {
+        errors.push(`Compacted track missing history_path: ${track.frontmatter.track_id}`);
+        continue;
+      }
+
+      const historyAbsolutePath = path.join(rootDir, historyPath);
+      if (!fs.existsSync(historyAbsolutePath)) {
+        errors.push(`Compacted track history file not found for ${track.frontmatter.track_id}`);
+      }
+    }
+  }
+}
+
 export function validateMemory(rootDir: string): ValidationResult {
   const errors: string[] = [];
   const trackDirectories = getTrackDirectories(rootDir);
@@ -138,6 +163,7 @@ export function validateMemory(rootDir: string): ValidationResult {
 
   validateDuplicateTrackIds(tracks, errors);
   validateUpdatedAtAgainstLogEntries(tracks, errors);
+  validateCompactionMetadata(rootDir, tracks, errors);
   errors.sort((left, right) => left.localeCompare(right));
 
   return {

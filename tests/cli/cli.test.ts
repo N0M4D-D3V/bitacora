@@ -14,7 +14,7 @@ describe("cli", () => {
     const program = createCliProgram();
     const names = program.commands.map((command) => command.name()).sort();
 
-    expect(names).toEqual(["init", "log", "new-track", "rebuild-state", "validate"]);
+    expect(names).toEqual(["compact", "history", "init", "log", "new-track", "rebuild-state", "validate"]);
   });
 
   it("returns non-zero exit code for unknown command", async () => {

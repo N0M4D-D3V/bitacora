@@ -13,6 +13,7 @@ Quick map of where to find each kind of project memory.
 4. \`ux-style-guide.md\` (visual style tokens and UX constraints)
 5. \`tracks/tracks.md\` (canonical project status and next actions)
 6. \`tracks/TRACK-*/track.md\` (details for active or relevant tracks)
+7. \`history/\` (archived detail, read only when needed)
 
 ## File Index
 
@@ -28,11 +29,16 @@ Quick map of where to find each kind of project memory.
 - \`tracks/TRACK-001/track.md\`: first active track created by \`bitacora init\`.
 - \`tracks/TRACK-*/track.md\`: per-track execution details (overview, tasks, decisions, log).
 
+### \`history/\`
+- \`history/TRACK-*.md\`: archived full detail after compaction.
+- \`history/tracks-*.md\`: archived snapshots of \`tracks/tracks.md\`.
+
 Mandatory behavior:
 
 - Always read this index at session start.
 - Always update memory before session end.
 - Always keep \`tracks/tracks.md\` aligned with track-level changes.
+- Read \`history/\` only when active context is insufficient.
 `;
 }
 
@@ -175,11 +181,13 @@ Canonical skill file path: \`.agents/skills/bitacora/SKILL.md\`.
 - Always read \`bitacora/product.md\`, \`bitacora/tech-stack.md\`, \`bitacora/workflow.md\`, and \`bitacora/ux-style-guide.md\` before making code changes.
 - Always read \`bitacora/tracks/tracks.md\` and the active \`bitacora/tracks/TRACK-*/track.md\` files before implementation.
 - Always write memory updates before ending the session.
+- Do not read \`bitacora/history/\` unless needed to recover full detail.
 
 ## What To Update During Work
 - Update \`bitacora/tracks/TRACK-*/track.md\` while work progresses (tasks, decisions, logs).
 - Update \`bitacora/tracks/tracks.md\` after meaningful changes, including current status and next action.
 - Update root docs when product/tech/workflow/ux assumptions change.
+- Before closing a fully completed track, append a \`TEST:\` verification log and run \`bitacora compact --track-id <id> --complete\`.
 
 ## File Map (Where To Look)
 - \`bitacora/product.md\`: scope, goals, constraints, non-goals.
@@ -189,6 +197,7 @@ Canonical skill file path: \`.agents/skills/bitacora/SKILL.md\`.
 - \`bitacora/tracks/tracks.md\`: canonical status registry and handoff summary.
 - \`bitacora/tracks/tracks-template.md\`: template for new tracks.
 - \`bitacora/tracks/TRACK-*/track.md\`: per-track execution details.
+- \`bitacora/history/\`: archived detail to inspect only when needed.
 
 ## Manual Bootstrap (No CLI Required)
 If the CLI is unavailable, create this exact structure manually:
@@ -200,6 +209,7 @@ bitacora/
   tech-stack.md
   workflow.md
   ux-style-guide.md
+  history/
   tracks/
     tracks.md
     tracks-template.md
@@ -222,6 +232,7 @@ Required track sections in \`track.md\`:
 ## End Of Session Checklist
 - Confirm \`bitacora/tracks/tracks.md\` is updated.
 - Confirm active \`TRACK-*/track.md\` files include latest decisions and logs.
+- Confirm compacted tracks have history in \`bitacora/history/\`.
 `;
 }
 

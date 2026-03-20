@@ -28,5 +28,7 @@ describe("bitacora skill generation", () => {
     expect(skillContent).toContain("## Manual Bootstrap (No CLI Required)");
     expect(skillContent).toContain("bitacora/ux-style-guide.md");
     expect(skillContent).toContain("bitacora/tracks/tracks.md");
+    expect(skillContent).toContain("bitacora/history/");
+    expect(skillContent).toContain("bitacora compact --track-id <id> --complete");
   });
 });

@@ -10,4 +10,4 @@
 - `npm run build`
 
 ## Notes
-Plan ejecutado y track cerrado. Fuente de verdad detallada: `conductor/tracks.md`.
+Plan ejecutado y track cerrado. Fuente de verdad detallada: `tracks/tracks.md`.

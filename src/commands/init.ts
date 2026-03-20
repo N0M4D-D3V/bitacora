@@ -121,6 +121,7 @@ export function runInitCommand(
   const trackId = "TRACK-001";
 
   fs.mkdirSync(path.join(memoryRoot, "tracks", trackId), { recursive: true });
+  fs.mkdirSync(path.join(memoryRoot, "history"), { recursive: true });
   fs.mkdirSync(path.join(options.rootDir, ".agents", "skills", "bitacora"), { recursive: true });
 
   fs.writeFileSync(path.join(memoryRoot, "product.md"), createProductTemplate(), "utf8");

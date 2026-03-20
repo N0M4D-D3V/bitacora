@@ -45,9 +45,9 @@ Use this only when creating a new active track. Keep entries short and execution
 - Blockers/assumptions: `<list>`
 - Next action: `<single best next step>`
 - Docs updated:
-  - `conductor/tracks.md`
-  - `conductor/tracks/TRACK-XYZ/metadata.json`
-  - `conductor/tracks/TRACK-XYZ/spec.md` or `plan.md` if needed
+  - `tracks/tracks.md`
+  - `tracks/TRACK-XYZ/metadata.json`
+  - `tracks/TRACK-XYZ/spec.md` or `plan.md` if needed
 
 ## Metadata JSON Template
 

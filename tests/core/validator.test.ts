@@ -202,4 +202,72 @@ one
     expect(result.ok).toBe(false);
     expect(result.errors).toContain("updated_at is older than latest log entry for TRACK-001");
   });
+
+  it("reports completed tracks with invalid completion metadata", () => {
+    const rootDir = makeTempRoot();
+
+    const content = `---
+track_id: TRACK-001
+status: completed
+priority: medium
+created_at: 2026-02-27T00:00:00.000Z
+updated_at: 2026-02-27T01:00:00.000Z
+completion: 80
+---
+
+# Overview
+one
+
+# Tasks
+one
+
+# Decisions
+one
+
+# Log
+- 2026-02-27T01:00:00.000Z | one
+`;
+
+    writeTrack(rootDir, "TRACK-001", content);
+
+    const result = validateMemory(rootDir);
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContain("Completed track must have completion 100: TRACK-001");
+  });
+
+  it("reports compacted tracks without valid history metadata", () => {
+    const rootDir = makeTempRoot();
+
+    const content = `---
+track_id: TRACK-001
+status: completed
+priority: medium
+created_at: 2026-02-27T00:00:00.000Z
+updated_at: 2026-02-27T01:00:00.000Z
+completion: 100
+compacted_at: 2026-02-27T01:00:00.000Z
+history_path: bitacora/history/TRACK-001.md
+---
+
+# Overview
+one
+
+# Tasks
+one
+
+# Decisions
+one
+
+# Log
+- 2026-02-27T01:00:00.000Z | one
+`;
+
+    writeTrack(rootDir, "TRACK-001", content);
+
+    const result = validateMemory(rootDir);
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContain("Compacted track history file not found for TRACK-001");
+  });
 });

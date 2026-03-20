@@ -17,4 +17,4 @@ Persistir/restaurar estado de cuenta y estrategia entre ejecuciones mediante arc
 - Escritura atómica documentada y probada.
 
 ## Notes
-Track cerrado. Ver evidencia, comandos y handoff histórico en `conductor/tracks.md`.
+Track cerrado. Ver evidencia, comandos y handoff histórico en `tracks/tracks.md`.

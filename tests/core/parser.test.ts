@@ -148,4 +148,35 @@ Overview text\r
     expect(parsed.sections.overview).toBe("Overview text");
     expect(parsed.sections.log).toBe("- 2026-02-27T00:00:00.000Z | created");
   });
+
+  it("parses optional compaction metadata fields", () => {
+    const markdown = `---
+track_id: TRACK-001
+status: completed
+priority: medium
+created_at: 2026-02-27T00:00:00.000Z
+updated_at: 2026-02-27T00:10:00.000Z
+completion: 100
+compacted_at: 2026-02-27T00:10:00.000Z
+history_path: bitacora/history/TRACK-001.md
+---
+
+# Overview
+Overview text
+
+# Tasks
+- task
+
+# Decisions
+- decision
+
+# Log
+- 2026-02-27T00:10:00.000Z | compacted
+`;
+
+    const parsed = parseTrackMarkdown(markdown);
+    expect(parsed.frontmatter.completion).toBe(100);
+    expect(parsed.frontmatter.compacted_at).toBe("2026-02-27T00:10:00.000Z");
+    expect(parsed.frontmatter.history_path).toBe("bitacora/history/TRACK-001.md");
+  });
 });

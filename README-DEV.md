@@ -1,6 +1,6 @@
 # Bitacora Development Guide
 
-This file contains internal/developer documentation for working on Bitacora.
+Internal/developer documentation for working on Bitacora CLI.
 
 ## Requirements
 
@@ -15,13 +15,13 @@ npm install
 
 ## Local Development
 
-Run the test suite:
+Run all tests:
 
 ```bash
 npm test
 ```
 
-Watch mode for tests:
+Watch mode:
 
 ```bash
 npm run test:watch
@@ -62,7 +62,7 @@ node dist/src/cli.js --help
 
 ## Build and Use the CLI Binary Locally
 
-The project exposes the `bitacora` command through `package.json#bin`, pointing to `dist/src/cli.js`.
+The project exposes `bitacora` through `package.json#bin`, pointing to `dist/src/cli.js`.
 
 ### Option 1: Global development binary (`npm link`)
 
@@ -88,7 +88,7 @@ npm pack
 Then install the generated `.tgz`:
 
 ```bash
-npm install -g ./bitacora-1.0.0.tgz
+npm install -g ./bitacora-1.1.0.tgz
 bitacora --help
 ```
 
@@ -101,6 +101,9 @@ bitacora/
   tech-stack.md
   workflow.md
   ux-style-guide.md
+  history/
+    TRACK-*.md
+    tracks-*.md
   tracks/
     tracks.md
     tracks-template.md
@@ -112,7 +115,45 @@ bitacora/
       SKILL.md
 ```
 
-`bitacora/index.md` and `bitacora/workflow.md` include session rules for memory usage and handoff updates.
+## New in 1.1.0: Track Compaction
+
+### Commands
+
+- `bitacora compact --track-id <TRACK-###> [--complete] [--dry-run]`
+- `bitacora compact --all [--complete] [--dry-run]`
+- `bitacora history --track-id <TRACK-###> [--show]`
+
+### Compaction behavior
+
+- Full source track is archived to `bitacora/history/TRACK-###.md`.
+- Active `track.md` is rewritten with compact summary + metadata:
+  - `completion`
+  - `compacted_at`
+  - `history_path`
+- `bitacora/tracks/tracks.md` is regenerated in compact format.
+- Previous `tracks.md` is archived as `bitacora/history/tracks-<timestamp>.md`.
+
+### Completion gates (`--complete`)
+
+Compaction with completion enabled requires:
+
+- No pending checklist items in `# Tasks` (`- [ ]`).
+- At least one log line containing `TEST:` in `# Log`.
+
+If gate checks fail, command exits with code `1` and does not mutate files.
+
+### History access model
+
+- `history/` is not part of the default read path.
+- Consumers should read archived history only when active compact context is insufficient.
+- `bitacora history` without `--show` returns path metadata only.
+
+## Internal Notes (Implementation)
+
+- Core compaction logic: `src/core/compaction.ts`.
+- CLI entrypoints: `src/commands/compact.ts` and `src/commands/history.ts`.
+- Parser/validator support optional compaction frontmatter fields.
+- `init` now creates `bitacora/history` and skill template includes compaction protocol.
 
 ## Pre-publish Checks
 

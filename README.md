@@ -14,24 +14,6 @@ Show help:
 bitacora --help
 ```
 
-Typical flow:
-
-```bash
-# init bitacora files structure and add SKILL
-bitacora init
-
-# ask your agent to complete bitacora
-# whith your project info. You can
-# complete bitacora by yourself if you wish.
-codex "$bitacora read and fill bitacora template with this project info"
-
-# plan some tasks
-codex (planner )"$bitacora plan the unit test for this repo and add separated tasks to bitacora"
-
-# use another agent
-codex "$bitacora implement the 003 track"
-```
-
 Use `--root <path>` on any command to target a different project directory.
 
 ## What Each Bitacora File Stores
@@ -43,42 +25,51 @@ Use `--root <path>` on any command to target a different project directory.
 - `bitacora/ux-style-guide.md`: visual tokens and UX interaction rules.
 - `bitacora/tracks/tracks.md`: canonical track registry, current snapshot, and handoff summary.
 - `bitacora/tracks/TRACK-*/track.md`: per-track plan, tasks, decisions, and timestamped log.
+- `bitacora/history/TRACK-*.md`: archived full track detail after compaction (read on demand).
+- `bitacora/history/tracks-*.md`: archived snapshots of `tracks/tracks.md`.
 - `.agents/skills/bitacora/SKILL.md`: instructions agents follow to keep the memory system updated.
 
-## How Agents Read and Update Bitacora
+## Compaction Model (v1.1.0)
 
-Recommended memory read order for agents:
+Bitacora now supports compacting finished tracks to reduce active context size and token usage.
 
-1. `bitacora/index.md`
-2. `bitacora/product.md`
-3. `bitacora/tech-stack.md`
-4. `bitacora/workflow.md`
-5. `bitacora/ux-style-guide.md`
-6. `bitacora/tracks/tracks.md`
-7. Active files in `bitacora/tracks/TRACK-*/track.md`
+### How it works
 
-Typical agent write operations:
+1. Keep full details while implementing.
+2. When a track is fully done, compact it.
+3. Bitacora writes a short version in `tracks/TRACK-xxx/track.md`.
+4. Full detail is archived in `bitacora/history/TRACK-xxx.md`.
+5. `bitacora/tracks/tracks.md` is regenerated in compact form.
 
-- `bitacora new-track`: create a new work unit.
-- `bitacora log --track-id ... --message ...`: append progress updates.
-- direct updates to `bitacora/tracks/TRACK-*/track.md`: tasks, decisions, execution details.
-- direct updates to `bitacora/tracks/tracks.md`: canonical project status and next action.
-- `bitacora validate` and `bitacora rebuild-state`: ensure memory remains valid and deterministic.
+### Completion gates for `--complete`
 
-## Agent Skill Integration
+`bitacora compact --complete` only succeeds when:
 
-When you run `bitacora init`, Bitacora also creates an agent skill at:
+- `# Tasks` has no unchecked checklist item (`- [ ]`).
+- `# Log` contains at least one verification line with `TEST:`.
 
-```text
-.agents/skills/bitacora/SKILL.md
+If gates fail, command exits with code `1` and no compaction is applied.
+
+## Typical flow
+
+```bash
+# 1) bootstrap
+bitacora init
+
+# 2) create work
+bitacora new-track
+
+# 3) append progress
+bitacora log --track-id TRACK-001 --message "implemented parser"
+bitacora log --track-id TRACK-001 --message "TEST: npm test -- --run tests/core/parser.test.ts -> pass"
+
+# 4) compact when fully completed
+bitacora compact --track-id TRACK-001 --complete
+
+# 5) inspect archive only when needed
+bitacora history --track-id TRACK-001
+bitacora history --track-id TRACK-001 --show
 ```
-
-This skill guides agents to keep memory updated during implementation:
-
-- Read project memory before coding.
-- Create and update tracks as work progresses.
-- Log decisions and progress.
-- Keep a consistent handoff summary in `bitacora/tracks/tracks.md`.
 
 ## Commands
 
@@ -104,6 +95,40 @@ Appends a timestamped log entry to an existing track.
 
 - `--track-id <trackId>`: required track identifier.
 - `--message <text>`: required log message.
+- `--root <path>`: sets the project root.
+
+### `bitacora compact [--track-id <trackId> | --all] [--complete] [--dry-run] [--root <path>]`
+
+Compacts tracks by summarizing content and archiving full detail.
+
+- `--track-id <trackId>`: compact a specific track.
+- `--all`: compact all eligible tracks.
+- `--complete`: mark target tracks as completed (requires completion gates).
+- `--dry-run`: report estimated byte/token savings without writing files.
+- `--root <path>`: sets the project root.
+
+Examples:
+
+```bash
+# Compact one already-completed track
+bitacora compact --track-id TRACK-004
+
+# Complete + compact in one step
+bitacora compact --track-id TRACK-004 --complete
+
+# Preview savings for all tracks
+bitacora compact --all --dry-run
+
+# Compact all completed tracks
+bitacora compact --all
+```
+
+### `bitacora history --track-id <trackId> [--show] [--root <path>]`
+
+Reads archived track history.
+
+- `--track-id <trackId>`: required track identifier.
+- `--show`: print full archived content (default prints only metadata/path).
 - `--root <path>`: sets the project root.
 
 ### `bitacora validate [--json] [--root <path>]`

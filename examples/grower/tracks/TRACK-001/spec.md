@@ -16,4 +16,4 @@ Implementar contabilidad de portfolio (long-only MVP) y validaciones de riesgo p
 - Reglas de riesgo bloquean órdenes inválidas de forma determinista.
 
 ## Notes
-Track cerrado. Ver evidencia, comandos y handoff histórico en `conductor/tracks.md`.
+Track cerrado. Ver evidencia, comandos y handoff histórico en `tracks/tracks.md`.

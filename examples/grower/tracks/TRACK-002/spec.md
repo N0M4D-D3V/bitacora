@@ -17,4 +17,4 @@ Implementar simulación de ejecución paper para órdenes market/limit con fees/
 - Contratos de broker en verde.
 
 ## Notes
-Track cerrado. Ver evidencia, comandos y handoff histórico en `conductor/tracks.md`.
+Track cerrado. Ver evidencia, comandos y handoff histórico en `tracks/tracks.md`.

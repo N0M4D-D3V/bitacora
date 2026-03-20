@@ -1,6 +1,6 @@
 {
   "name": "bitacora-cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Deterministic agent-oriented project memory system. Provides structured Markdown-based long-term memory, strict validation, state reconstruction, and an enforcement CLI with agent skill integration to guide and limit agent behavior.",
   "repository": {
     "type": "git",

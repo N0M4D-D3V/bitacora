@@ -10,6 +10,9 @@ export interface TrackFrontmatter {
   priority: TrackPriority;
   created_at: string;
   updated_at: string;
+  completion?: number;
+  compacted_at?: string;
+  history_path?: string;
 }
 
 export interface TrackSections {

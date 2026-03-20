@@ -3,6 +3,8 @@
 import { Command, CommanderError } from "commander";
 
 import { runInitCommand } from "./commands/init";
+import { runCompactCommand } from "./commands/compact";
+import { runHistoryCommand } from "./commands/history";
 import { runLogCommand } from "./commands/log";
 import { runNewTrackCommand } from "./commands/new-track";
 import { runRebuildStateCommand } from "./commands/rebuild-state";
@@ -47,6 +49,22 @@ Command details:
     Options:
       --track-id <trackId>  Track identifier.
       --message <text>      Log entry message.
+      --root <path>         Project root path (default: current directory).
+
+  compact
+    Compacts tracks by summarizing and archiving redundant details.
+    Options:
+      --track-id <trackId>  Compact a specific track.
+      --all                 Compact all eligible tracks.
+      --complete            Mark target tracks as completed (requires completion gates).
+      --dry-run             Show savings without modifying files.
+      --root <path>         Project root path (default: current directory).
+
+  history
+    Reads archived history for a compacted track.
+    Options:
+      --track-id <trackId>  Track identifier.
+      --show                Print full archived content.
       --root <path>         Project root path (default: current directory).
 `;
 
@@ -181,6 +199,65 @@ export function createCliProgram(
       );
       onCommandExitCode?.(exitCode);
       });
+
+  program
+    .command("compact")
+    .description("Compact tracks and archive redundant details.")
+    .option("--track-id <trackId>", "track identifier")
+    .option("--all", "compact all eligible tracks")
+    .option("--complete", "mark track(s) as completed before compaction")
+    .option("--dry-run", "report savings without writing files")
+    .option("--root <path>", "project root path")
+    .action(
+      (options: {
+        trackId?: string;
+        all?: boolean;
+        complete?: boolean;
+        dryRun?: boolean;
+        root?: string;
+      }) => {
+        const compactOptions: Parameters<typeof runCompactCommand>[0] = {
+          rootDir: options.root ?? cwd(),
+          all: Boolean(options.all),
+          complete: Boolean(options.complete),
+          dryRun: Boolean(options.dryRun)
+        };
+        if (options.trackId !== undefined) {
+          compactOptions.trackId = options.trackId;
+        }
+
+        const exitCode = runCompactCommand(
+          compactOptions,
+          {
+            now,
+            onOutput: (message) => writeLine(stdout, message),
+            onError: (message) => writeLine(stderr, message)
+          }
+        );
+        onCommandExitCode?.(exitCode);
+      }
+    );
+
+  program
+    .command("history")
+    .description("Read archived history for a compacted track.")
+    .requiredOption("--track-id <trackId>", "track identifier")
+    .option("--show", "print full archived content")
+    .option("--root <path>", "project root path")
+    .action((options: { trackId: string; show?: boolean; root?: string }) => {
+      const exitCode = runHistoryCommand(
+        {
+          rootDir: options.root ?? cwd(),
+          trackId: options.trackId,
+          show: Boolean(options.show)
+        },
+        {
+          onOutput: (message) => writeLine(stdout, message),
+          onError: (message) => writeLine(stderr, message)
+        }
+      );
+      onCommandExitCode?.(exitCode);
+    });
 
   program.addHelpText("after", COMMAND_HELP_OVERVIEW);
 
