@@ -165,7 +165,7 @@ export function createAgentSkillTemplate(): string {
   return `---
 name: bitacora
 description: Keep deterministic project memory in bitacora/ and update it continuously during implementation sessions.
-version: 1.0.0
+version: 1.1.1
 type: local
 source: .agents/skills/bitacora/SKILL.md
 ---

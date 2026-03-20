@@ -45,7 +45,7 @@ describe("context templates", () => {
     expect(skill).toContain("---");
     expect(skill).toContain("name: bitacora");
     expect(skill).toContain("description: Keep deterministic project memory in bitacora/ and update it continuously during implementation sessions.");
-    expect(skill).toContain("version: 1.0.0");
+    expect(skill).toContain("version: 1.1.1");
     expect(skill).toContain("type: local");
     expect(skill).toContain("source: .agents/skills/bitacora/SKILL.md");
     expect(skill).toContain("# Bitacora Skill");

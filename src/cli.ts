@@ -8,6 +8,7 @@ import { runHistoryCommand } from "./commands/history";
 import { runLogCommand } from "./commands/log";
 import { runNewTrackCommand } from "./commands/new-track";
 import { runRebuildStateCommand } from "./commands/rebuild-state";
+import { runSkillCommand } from "./commands/skill";
 import { runValidateCommand } from "./commands/validate";
 import type { TrackPriority, TrackStatus } from "./types";
 
@@ -24,6 +25,11 @@ Command details:
     Creates the bitacora memory structure in the selected project root.
     Options:
       --force        Recreate bitacora memory if it already exists.
+      --root <path>  Project root path (default: current directory).
+
+  skill
+    Installs or updates only the bitacora agent skill and skills lock entry.
+    Options:
       --root <path>  Project root path (default: current directory).
 
   new-track [trackId]
@@ -59,6 +65,13 @@ Command details:
       --complete            Mark target tracks as completed (requires completion gates).
       --dry-run             Show savings without modifying files.
       --root <path>         Project root path (default: current directory).
+    Completion gates (--complete):
+      - # Tasks has no unchecked item (- [ ]).
+      - # Log includes at least one line containing TEST:.
+    Output model:
+      - Full source moves to bitacora/history/TRACK-###.md.
+      - Active track.md is rewritten into compact summary form.
+      - tracks/tracks.md is regenerated; previous snapshot is archived in history/.
 
   history
     Reads archived history for a compacted track.
@@ -66,6 +79,9 @@ Command details:
       --track-id <trackId>  Track identifier.
       --show                Print full archived content.
       --root <path>         Project root path (default: current directory).
+    Notes:
+      - Without --show, prints metadata/path only.
+      - Use --show only when compact summary is insufficient.
 `;
 
 function writeLine(writer: (message: string) => void, message: string): void {
@@ -103,6 +119,22 @@ export function createCliProgram(
         },
         {
           now,
+          onError: (message) => writeLine(stderr, message)
+        }
+      );
+      onCommandExitCode?.(exitCode);
+    });
+
+  program
+    .command("skill")
+    .description("Install or update only the bitacora agent skill.")
+    .option("--root <path>", "project root path")
+    .action((options: { root?: string }) => {
+      const exitCode = runSkillCommand(
+        {
+          rootDir: options.root ?? cwd()
+        },
+        {
           onError: (message) => writeLine(stderr, message)
         }
       );
@@ -276,6 +308,9 @@ export async function runCli(argv: string[], runtime: CliRuntime = {}): Promise<
     return commandExitCode;
   } catch (error) {
     if (error instanceof CommanderError) {
+      if (error.code === "commander.helpDisplayed") {
+        return 0;
+      }
       return commandExitCode !== 0 ? commandExitCode : 1;
     }
     throw error;

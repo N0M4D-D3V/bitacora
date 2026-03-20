@@ -14,7 +14,7 @@ describe("cli", () => {
     const program = createCliProgram();
     const names = program.commands.map((command) => command.name()).sort();
 
-    expect(names).toEqual(["compact", "history", "init", "log", "new-track", "rebuild-state", "validate"]);
+    expect(names).toEqual(["compact", "history", "init", "log", "new-track", "rebuild-state", "skill", "validate"]);
   });
 
   it("returns non-zero exit code for unknown command", async () => {
@@ -28,6 +28,22 @@ describe("cli", () => {
     expect(output.join("\n")).toContain("unknown command");
   });
 
+  it("returns zero exit code for --help and includes compact/history details", async () => {
+    const output: string[] = [];
+    const exitCode = await runCli(["node", "bitacora", "--help"], {
+      stdout: (message) => output.push(message),
+      stderr: (message) => output.push(message)
+    });
+
+    const text = output.join("\n");
+    expect(exitCode).toBe(0);
+    expect(text).toContain("skill [options]");
+    expect(text).toContain("Completion gates (--complete):");
+    expect(text).toContain("Output model:");
+    expect(text).toContain("Notes:");
+    expect(text).toContain("Without --show, prints metadata/path only.");
+  });
+
   it("runs init command and exits with code 0", async () => {
     const rootDir = makeTempRoot();
     const exitCode = await runCli(["node", "bitacora", "init", "--root", rootDir], {
@@ -37,5 +53,15 @@ describe("cli", () => {
     expect(exitCode).toBe(0);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "index.md"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "tracks", "TRACK-001", "track.md"))).toBe(true);
+  });
+
+  it("runs skill command and exits with code 0", async () => {
+    const rootDir = makeTempRoot();
+    const exitCode = await runCli(["node", "bitacora", "skill", "--root", rootDir]);
+
+    expect(exitCode).toBe(0);
+    expect(fs.existsSync(path.join(rootDir, ".agents", "skills", "bitacora", "SKILL.md"))).toBe(true);
+    expect(fs.existsSync(path.join(rootDir, "skills-lock.json"))).toBe(true);
+    expect(fs.existsSync(path.join(rootDir, "bitacora"))).toBe(false);
   });
 });

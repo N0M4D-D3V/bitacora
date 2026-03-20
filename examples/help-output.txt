@@ -1,0 +1,84 @@
+Usage: bitacora [options] [command]
+
+Deterministic agent-oriented project memory system
+
+Options:
+  -h, --help                     display help for command
+
+Commands:
+  init [options]                 Create bitacora memory files and folders.
+  skill [options]                Install or update only the bitacora agent
+                                 skill.
+  new-track [options] [trackId]  Create a new track with optional id, status,
+                                 and priority.
+  validate [options]             Validate bitacora structure and report errors.
+  rebuild-state [options]        Revalidate memory and rebuild in-memory state
+                                 from tracks.
+  log [options]                  Append a log entry to a track.
+  compact [options]              Compact tracks and archive redundant details.
+  history [options]              Read archived history for a compacted track.
+  help [command]                 display help for command
+
+Command details:
+  init
+    Creates the bitacora memory structure in the selected project root.
+    Options:
+      --force        Recreate bitacora memory if it already exists.
+      --root <path>  Project root path (default: current directory).
+
+  skill
+    Installs or updates only the bitacora agent skill and skills lock entry.
+    Options:
+      --root <path>  Project root path (default: current directory).
+
+  new-track [trackId]
+    Creates a new track file, automatically picking the next track id when omitted.
+    Options:
+      --status <status>      Initial status for the track.
+      --priority <priority>  Initial priority for the track.
+      --root <path>          Project root path (default: current directory).
+
+  validate
+    Validates bitacora files and folders against the expected deterministic format.
+    Options:
+      --json         Prints validation output as JSON.
+      --root <path>  Project root path (default: current directory).
+
+  rebuild-state
+    Revalidates track memory and confirms deterministic state can be rebuilt.
+    Options:
+      --root <path>  Project root path (default: current directory).
+
+  log
+    Appends a timestamped log entry to an existing track.
+    Options:
+      --track-id <trackId>  Track identifier.
+      --message <text>      Log entry message.
+      --root <path>         Project root path (default: current directory).
+
+  compact
+    Compacts tracks by summarizing and archiving redundant details.
+    Options:
+      --track-id <trackId>  Compact a specific track.
+      --all                 Compact all eligible tracks.
+      --complete            Mark target tracks as completed (requires completion gates).
+      --dry-run             Show savings without modifying files.
+      --root <path>         Project root path (default: current directory).
+    Completion gates (--complete):
+      - # Tasks has no unchecked item (- [ ]).
+      - # Log includes at least one line containing TEST:.
+    Output model:
+      - Full source moves to bitacora/history/TRACK-###.md.
+      - Active track.md is rewritten into compact summary form.
+      - tracks/tracks.md is regenerated; previous snapshot is archived in history/.
+
+  history
+    Reads archived history for a compacted track.
+    Options:
+      --track-id <trackId>  Track identifier.
+      --show                Print full archived content.
+      --root <path>         Project root path (default: current directory).
+    Notes:
+      - Without --show, prints metadata/path only.
+      - Use --show only when compact summary is insufficient.
+

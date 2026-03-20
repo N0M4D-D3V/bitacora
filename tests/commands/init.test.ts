@@ -58,7 +58,7 @@ describe("runInitCommand", () => {
     const createdSkill = readFile(rootDir, ".agents/skills/bitacora/SKILL.md");
     expect(createdSkill).toContain("name: bitacora");
     expect(createdSkill).toContain("description: Keep deterministic project memory in bitacora/ and update it continuously during implementation sessions.");
-    expect(createdSkill).toContain("version: 1.0.0");
+    expect(createdSkill).toContain("version: 1.1.1");
     expect(createdSkill).toContain("type: local");
     expect(createdSkill).toContain("source: .agents/skills/bitacora/SKILL.md");
     expect(createdSkill).toContain("## Manual Bootstrap (No CLI Required)");

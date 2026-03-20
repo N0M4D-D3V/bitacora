@@ -15,6 +15,7 @@ bitacora --help
 ```
 
 Use `--root <path>` on any command to target a different project directory.
+Command examples are available in `examples/cli-workflows.md`.
 
 ## What Each Bitacora File Stores
 
@@ -50,23 +51,30 @@ Bitacora now supports compacting finished tracks to reduce active context size a
 
 If gates fail, command exits with code `1` and no compaction is applied.
 
+## New in v1.1.1: Skill-only update
+
+Use `bitacora skill` to install/update only `.agents/skills/bitacora/SKILL.md` and `skills-lock.json` without recreating `bitacora/` context files.
+
 ## Typical flow
 
 ```bash
 # 1) bootstrap
 bitacora init
 
-# 2) create work
+# 2) update skill only (after CLI upgrades)
+bitacora skill
+
+# 3) create work
 bitacora new-track
 
-# 3) append progress
+# 4) append progress
 bitacora log --track-id TRACK-001 --message "implemented parser"
 bitacora log --track-id TRACK-001 --message "TEST: npm test -- --run tests/core/parser.test.ts -> pass"
 
-# 4) compact when fully completed
+# 5) compact when fully completed
 bitacora compact --track-id TRACK-001 --complete
 
-# 5) inspect archive only when needed
+# 6) inspect archive only when needed
 bitacora history --track-id TRACK-001
 bitacora history --track-id TRACK-001 --show
 ```
@@ -79,6 +87,14 @@ Creates the `bitacora/` memory structure in the project root.
 
 - `--force`: recreates memory files if they already exist.
 - `--root <path>`: sets the project root (default: current directory).
+
+### `bitacora skill [--root <path>]`
+
+Installs or updates only the Bitacora local agent skill and its lock entry.
+
+- Updates `.agents/skills/bitacora/SKILL.md`.
+- Updates `skills-lock.json` entry for `bitacora` while preserving other skills.
+- Does not recreate or modify `bitacora/` project memory files.
 
 ### `bitacora new-track [trackId] [--status <status>] [--priority <priority>] [--root <path>]`
 
@@ -106,6 +122,13 @@ Compacts tracks by summarizing content and archiving full detail.
 - `--complete`: mark target tracks as completed (requires completion gates).
 - `--dry-run`: report estimated byte/token savings without writing files.
 - `--root <path>`: sets the project root.
+- `--complete` gates:
+  - `# Tasks` must not contain unchecked items (`- [ ]`).
+  - `# Log` must include at least one `TEST:` line.
+- rewrite/archive model:
+  - full source track is archived under `bitacora/history/TRACK-###.md`.
+  - active `tracks/TRACK-###/track.md` is rewritten into compact summary form.
+  - `tracks/tracks.md` is regenerated and the previous snapshot is archived in `bitacora/history/tracks-*.md`.
 
 Examples:
 
@@ -130,6 +153,15 @@ Reads archived track history.
 - `--track-id <trackId>`: required track identifier.
 - `--show`: print full archived content (default prints only metadata/path).
 - `--root <path>`: sets the project root.
+
+### `bitacora --help`
+
+`bitacora --help` includes full command details for:
+- `init`, `skill`, `new-track`, `validate`, `rebuild-state`, `log`
+- `compact` (flags, completion gates, output/archive model)
+- `history` (metadata mode vs `--show`)
+
+For a maintained example output, see `examples/help-output.txt`.
 
 ### `bitacora validate [--json] [--root <path>]`
 

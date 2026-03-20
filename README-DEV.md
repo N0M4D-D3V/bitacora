@@ -60,6 +60,10 @@ From compiled output:
 node dist/src/cli.js --help
 ```
 
+Maintained CLI usage examples:
+- `examples/cli-workflows.md`
+- `examples/help-output.txt`
+
 ## Build and Use the CLI Binary Locally
 
 The project exposes `bitacora` through `package.json#bin`, pointing to `dist/src/cli.js`.
@@ -88,7 +92,7 @@ npm pack
 Then install the generated `.tgz`:
 
 ```bash
-npm install -g ./bitacora-1.1.0.tgz
+npm install -g ./bitacora-1.1.1.tgz
 bitacora --help
 ```
 
@@ -154,6 +158,23 @@ If gate checks fail, command exits with code `1` and does not mutate files.
 - CLI entrypoints: `src/commands/compact.ts` and `src/commands/history.ts`.
 - Parser/validator support optional compaction frontmatter fields.
 - `init` now creates `bitacora/history` and skill template includes compaction protocol.
+
+## New in 1.1.1: Skill-only command
+
+- New command: `bitacora skill [--root <path>]`.
+- Writes/updates only:
+  - `.agents/skills/bitacora/SKILL.md`
+  - `skills-lock.json` entry for `bitacora`
+- Preserves existing `bitacora/` memory context and other skills in the lock file.
+
+## `bitacora --help` Contract
+
+`src/cli.ts` must keep help text aligned with README docs, including:
+- `skill` command behavior (skill-only update).
+- full compaction semantics:
+  - `--complete` gates (`# Tasks` done + `TEST:` in `# Log`).
+  - archive/rewrite behavior (`track.md`, `history/`, `tracks.md` snapshot).
+- `history` metadata mode vs `--show` full content mode.
 
 ## Pre-publish Checks
 
