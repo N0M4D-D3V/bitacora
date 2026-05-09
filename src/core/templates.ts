@@ -9,17 +9,21 @@ Quick map of where to find each kind of project memory.
 
 1. \`product.md\` (product goals, constraints, and scope)
 2. \`tech-stack.md\` (runtime, dependencies, and technical rules)
-3. \`workflow.md\` (execution process and mandatory handoff rules)
-4. \`ux-style-guide.md\` (visual style tokens and UX constraints)
-5. \`tracks/tracks.md\` (canonical project status and next actions)
-6. \`tracks/TRACK-*/track.md\` (details for active or relevant tracks)
-7. \`history/\` (archived detail, read only when needed)
+3. \`architecture.md\` (technical architecture harness and system boundaries)
+4. \`conventions.md\` (technical convention hardness and implementation rules)
+5. \`workflow.md\` (execution process and mandatory handoff rules)
+6. \`ux-style-guide.md\` (visual style tokens and UX constraints)
+7. \`tracks/tracks.md\` (canonical project status and next actions)
+8. \`tracks/TRACK-*/track.md\` (details for active or relevant tracks)
+9. \`history/\` (archived detail, read only when needed)
 
 ## File Index
 
 ### Root Docs
 - \`product.md\`: what the project is, why it exists, and what is in scope.
 - \`tech-stack.md\`: runtime, dependencies, architecture constraints, and technical rules.
+- \`architecture.md\`: technical architecture harness, boundaries, and system seams.
+- \`conventions.md\`: hard technical conventions for implementation, structure, and quality.
 - \`workflow.md\`: TDD process, quality gates, and mandatory handoff rules.
 - \`ux-style-guide.md\`: colors, typography, spacing, and interaction style rules.
 
@@ -116,6 +120,49 @@ export function createWorkflowTemplate(): string {
 `;
 }
 
+export function createArchitectureTemplate(): string {
+  return `# Architecture
+
+## Purpose
+- Define the technical architecture harness for this project.
+- Make module boundaries, execution seams, and integration points explicit.
+
+## System Shape
+- Core/domain logic should stay isolated from transport, storage, and platform adapters.
+- Cross-boundary behavior should flow through explicit interfaces.
+
+## Deterministic Seams
+- Prefer narrow bootstrap points for structure repair and initialization.
+- Keep side effects localized and easy to validate.
+
+## Change Rules
+- Record architectural constraints here when they affect implementation decisions.
+- Update this file when system boundaries or execution seams change.
+`;
+}
+
+export function createConventionsTemplate(): string {
+  return `# Conventions
+
+## Purpose
+- Define the hard technical conventions for this repository.
+- Keep implementation decisions consistent, reviewable, and deterministic.
+
+## Code Conventions
+- Prefer small, single-purpose modules.
+- Reuse existing patterns before introducing new abstractions.
+- Keep behavior explicit and avoid hidden side effects.
+
+## Change Conventions
+- Add or update tests before implementation changes.
+- Keep validation commands deterministic and repeatable.
+- Document only durable technical rules here.
+
+## Maintenance Rule
+- Update this file when repository-wide technical conventions change.
+`;
+}
+
 export function createUxStyleGuideTemplate(): string {
   return `# UX Style Guide
 
@@ -178,7 +225,7 @@ Canonical skill file path: \`.agents/skills/bitacora/SKILL.md\`.
 
 ## Mandatory Session Protocol
 - Always read \`bitacora/index.md\` at session start.
-- Always read \`bitacora/product.md\`, \`bitacora/tech-stack.md\`, \`bitacora/workflow.md\`, and \`bitacora/ux-style-guide.md\` before making code changes.
+- Always read \`bitacora/product.md\`, \`bitacora/tech-stack.md\`, \`bitacora/architecture.md\`, \`bitacora/conventions.md\`, \`bitacora/workflow.md\`, and \`bitacora/ux-style-guide.md\` before making code changes.
 - Always read \`bitacora/tracks/tracks.md\` and the active \`bitacora/tracks/TRACK-*/track.md\` files before implementation.
 - Always write memory updates before ending the session.
 - Do not read \`bitacora/history/\` unless needed to recover full detail.
@@ -192,6 +239,8 @@ Canonical skill file path: \`.agents/skills/bitacora/SKILL.md\`.
 ## File Map (Where To Look)
 - \`bitacora/product.md\`: scope, goals, constraints, non-goals.
 - \`bitacora/tech-stack.md\`: runtime, dependencies, architecture rules.
+- \`bitacora/architecture.md\`: architecture harness, boundaries, and execution seams.
+- \`bitacora/conventions.md\`: hard technical conventions and implementation rules.
 - \`bitacora/workflow.md\`: TDD rules, handoff checklist, quality gates.
 - \`bitacora/ux-style-guide.md\`: visual tokens, layout, typography, interaction style.
 - \`bitacora/tracks/tracks.md\`: canonical status registry and handoff summary.
@@ -207,6 +256,8 @@ bitacora/
   index.md
   product.md
   tech-stack.md
+  architecture.md
+  conventions.md
   workflow.md
   ux-style-guide.md
   history/

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { createArchitectureTemplate, createConventionsTemplate } from "./templates";
 import { buildStateFromTracks } from "./state-builder";
 import { validateMemory } from "./validator";
 import type { ProjectState } from "../types";
@@ -10,10 +11,37 @@ export interface BootLoaders {
     index: string;
     product: string;
     techStack: string;
+    architecture: string;
+    conventions: string;
     workflow: string;
     uxStyleGuide: string;
   }) => void;
   loadTracks?: (trackFiles: string[]) => void;
+}
+
+function ensureTechnicalRootDocs(rootDir: string): void {
+  const memoryRoot = path.join(rootDir, "bitacora");
+  if (!fs.existsSync(memoryRoot)) {
+    return;
+  }
+
+  const missingTechnicalDocs = [
+    {
+      fileName: "architecture.md",
+      content: createArchitectureTemplate()
+    },
+    {
+      fileName: "conventions.md",
+      content: createConventionsTemplate()
+    }
+  ];
+
+  for (const document of missingTechnicalDocs) {
+    const targetPath = path.join(memoryRoot, document.fileName);
+    if (!fs.existsSync(targetPath)) {
+      fs.writeFileSync(targetPath, document.content, "utf8");
+    }
+  }
 }
 
 function readRequiredFile(rootDir: string, relativePath: string): string {
@@ -26,12 +54,24 @@ function readRequiredFile(rootDir: string, relativePath: string): string {
 }
 
 export function boot(rootDir: string, loaders: BootLoaders = {}): ProjectState {
+  ensureTechnicalRootDocs(rootDir);
+
   const index = readRequiredFile(rootDir, path.join("bitacora", "index.md"));
   const product = readRequiredFile(rootDir, path.join("bitacora", "product.md"));
   const techStack = readRequiredFile(rootDir, path.join("bitacora", "tech-stack.md"));
+  const architecture = readRequiredFile(rootDir, path.join("bitacora", "architecture.md"));
+  const conventions = readRequiredFile(rootDir, path.join("bitacora", "conventions.md"));
   const workflow = readRequiredFile(rootDir, path.join("bitacora", "workflow.md"));
   const uxStyleGuide = readRequiredFile(rootDir, path.join("bitacora", "ux-style-guide.md"));
-  loaders.loadContext?.({ index, product, techStack, workflow, uxStyleGuide });
+  loaders.loadContext?.({
+    index,
+    product,
+    techStack,
+    architecture,
+    conventions,
+    workflow,
+    uxStyleGuide
+  });
 
   const tracksRoot = path.join(rootDir, "bitacora", "tracks");
   if (!fs.existsSync(tracksRoot)) {

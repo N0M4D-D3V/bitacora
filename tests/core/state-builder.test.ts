@@ -41,6 +41,8 @@ describe("buildStateFromTracks", () => {
     expect(state.project.context_paths).toEqual([
       "bitacora/product.md",
       "bitacora/tech-stack.md",
+      "bitacora/architecture.md",
+      "bitacora/conventions.md",
       "bitacora/workflow.md",
       "bitacora/ux-style-guide.md"
     ]);
@@ -67,6 +69,8 @@ describe("buildStateFromTracks", () => {
           "context_paths": [
             "bitacora/product.md",
             "bitacora/tech-stack.md",
+            "bitacora/architecture.md",
+            "bitacora/conventions.md",
             "bitacora/workflow.md",
             "bitacora/ux-style-guide.md"
           ],

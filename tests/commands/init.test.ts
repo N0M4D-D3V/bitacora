@@ -28,6 +28,8 @@ describe("runInitCommand", () => {
     expect(exitCode).toBe(0);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "product.md"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "tech-stack.md"))).toBe(true);
+    expect(fs.existsSync(path.join(rootDir, "bitacora", "architecture.md"))).toBe(true);
+    expect(fs.existsSync(path.join(rootDir, "bitacora", "conventions.md"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "workflow.md"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "ux-style-guide.md"))).toBe(true);
     expect(fs.existsSync(path.join(rootDir, "bitacora", "index.md"))).toBe(true);
@@ -46,6 +48,8 @@ describe("runInitCommand", () => {
     expect(createdIndex).toContain("Always read this index at session start.");
     expect(createdIndex).toContain("`product.md`");
     expect(createdIndex).toContain("`tech-stack.md`");
+    expect(createdIndex).toContain("`architecture.md`");
+    expect(createdIndex).toContain("`conventions.md`");
     expect(createdIndex).toContain("`workflow.md`");
     expect(createdIndex).toContain("`ux-style-guide.md`");
     expect(createdIndex).toContain("`tracks/tracks.md`");
@@ -63,6 +67,8 @@ describe("runInitCommand", () => {
     expect(createdSkill).toContain("source: .agents/skills/bitacora/SKILL.md");
     expect(createdSkill).toContain("## Manual Bootstrap (No CLI Required)");
     expect(createdSkill).toContain("Canonical skill file path: `.agents/skills/bitacora/SKILL.md`.");
+    expect(createdSkill).toContain("bitacora/architecture.md");
+    expect(createdSkill).toContain("bitacora/conventions.md");
 
     const lock = readJson(rootDir, "skills-lock.json") as {
       version: number;

@@ -41,6 +41,8 @@ export function buildStateFromTracks(tracks: ParsedTrackFile[]): ProjectState {
       context_paths: [
         "bitacora/product.md",
         "bitacora/tech-stack.md",
+        "bitacora/architecture.md",
+        "bitacora/conventions.md",
         "bitacora/workflow.md",
         "bitacora/ux-style-guide.md"
       ],

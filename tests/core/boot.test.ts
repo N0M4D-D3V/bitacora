@@ -42,6 +42,8 @@ function seedValidMemory(rootDir: string): void {
   writeFile(rootDir, "bitacora/index.md", "# Index\n");
   writeFile(rootDir, "bitacora/product.md", "# Product\n");
   writeFile(rootDir, "bitacora/tech-stack.md", "# Tech Stack\n");
+  writeFile(rootDir, "bitacora/architecture.md", "# Architecture\n");
+  writeFile(rootDir, "bitacora/conventions.md", "# Conventions\n");
   writeFile(rootDir, "bitacora/workflow.md", "# Workflow\n");
   writeFile(rootDir, "bitacora/ux-style-guide.md", "# UX\n");
   writeFile(rootDir, "bitacora/tracks/TRACK-001/track.md", validTrack("TRACK-001", "active"));
@@ -81,5 +83,30 @@ describe("boot", () => {
     });
 
     expect(callTrace).toEqual(["context", "tracks"]);
+  });
+
+  it("auto-creates missing architecture and conventions docs for legacy workspaces", () => {
+    const rootDir = makeTempRoot();
+    writeFile(rootDir, "bitacora/index.md", "# Index\n");
+    writeFile(rootDir, "bitacora/product.md", "# Product\n");
+    writeFile(rootDir, "bitacora/tech-stack.md", "# Tech Stack\n");
+    writeFile(rootDir, "bitacora/workflow.md", "# Workflow\n");
+    writeFile(rootDir, "bitacora/ux-style-guide.md", "# UX\n");
+    writeFile(rootDir, "bitacora/tracks/TRACK-001/track.md", validTrack("TRACK-001", "active"));
+
+    const loadedContexts: Array<Record<string, string>> = [];
+
+    const state = boot(rootDir, {
+      loadContext: (context) => loadedContexts.push(context)
+    });
+
+    expect(state.project.context_paths).toContain("bitacora/architecture.md");
+    expect(state.project.context_paths).toContain("bitacora/conventions.md");
+    expect(fs.existsSync(path.join(rootDir, "bitacora", "architecture.md"))).toBe(true);
+    expect(fs.existsSync(path.join(rootDir, "bitacora", "conventions.md"))).toBe(true);
+    expect(loadedContexts[0]).toMatchObject({
+      architecture: expect.stringContaining("# Architecture"),
+      conventions: expect.stringContaining("# Conventions")
+    });
   });
 });

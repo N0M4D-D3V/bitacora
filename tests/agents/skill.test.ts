@@ -26,6 +26,8 @@ describe("bitacora skill generation", () => {
     const skillContent = fs.readFileSync(path.join(skillDir, "SKILL.md"), "utf8");
     expect(skillContent).toContain("## Mandatory Session Protocol");
     expect(skillContent).toContain("## Manual Bootstrap (No CLI Required)");
+    expect(skillContent).toContain("bitacora/architecture.md");
+    expect(skillContent).toContain("bitacora/conventions.md");
     expect(skillContent).toContain("bitacora/ux-style-guide.md");
     expect(skillContent).toContain("bitacora/tracks/tracks.md");
     expect(skillContent).toContain("bitacora/history/");

@@ -17,6 +17,8 @@ describe("context templates", () => {
     expect(index).toContain("## File Index");
     expect(index).toContain("`product.md`");
     expect(index).toContain("`tech-stack.md`");
+    expect(index).toContain("`architecture.md`");
+    expect(index).toContain("`conventions.md`");
     expect(index).toContain("`workflow.md`");
     expect(index).toContain("`ux-style-guide.md`");
     expect(index).toContain("`tracks/tracks.md`");
@@ -53,6 +55,8 @@ describe("context templates", () => {
     expect(skill).toContain("bitacora/");
     expect(skill).toContain(".agents/skills/bitacora/SKILL.md");
     expect(skill).toContain("Always read `bitacora/index.md` at session start.");
+    expect(skill).toContain("bitacora/architecture.md");
+    expect(skill).toContain("bitacora/conventions.md");
   });
 });
 

@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
+  createArchitectureTemplate,
+  createConventionsTemplate,
   createIndexTemplate,
   createProductTemplate,
   createTechStackTemplate,
@@ -49,6 +51,8 @@ export function runInitCommand(
 
   fs.writeFileSync(path.join(memoryRoot, "product.md"), createProductTemplate(), "utf8");
   fs.writeFileSync(path.join(memoryRoot, "tech-stack.md"), createTechStackTemplate(), "utf8");
+  fs.writeFileSync(path.join(memoryRoot, "architecture.md"), createArchitectureTemplate(), "utf8");
+  fs.writeFileSync(path.join(memoryRoot, "conventions.md"), createConventionsTemplate(), "utf8");
   fs.writeFileSync(path.join(memoryRoot, "workflow.md"), createWorkflowTemplate(), "utf8");
   fs.writeFileSync(path.join(memoryRoot, "ux-style-guide.md"), createUxStyleGuideTemplate(), "utf8");
   fs.writeFileSync(path.join(memoryRoot, "index.md"), createIndexTemplate(), "utf8");
