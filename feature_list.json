@@ -1,0 +1,21 @@
+{
+   "project": "notes-cli",
+  "description": "CLI minimalista de notas en Python. Sirve como ejemplo didáctico de Harness Engineering.",
+  "rules": {
+    "one_feature_at_a_time": true,
+    "require_tests_to_close": true,
+    "valid_status": ["pending", "in_progress", "done", "blocked"]
+  },
+  "features":[
+    {
+      "id": 1,
+      "name": "sample_feature",
+      "title": "Example Feature",
+      "description": "This is just an example feature.",
+      "acceptance": [
+        "",
+      ],
+      "status": "done"
+    },
+  ]
+}
