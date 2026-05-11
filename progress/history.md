@@ -81,6 +81,24 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-11 - Claude adapter and permissions merge
+
+- **Agent:** `implementation developer`
+- **Feature:** `4 claude_adapter_permissions`
+- **Plan:** Review Claude adapter spec and init flow, add failing tests for Claude generation and permissions merge, then implement the minimal adapter path and validate fully.
+- **Changes:**
+  - Added a dedicated Claude adapter module and wired `bitacora init` to regenerate Claude outputs from canonical files.
+  - Implemented canonical frontmatter translation for Claude agent files, including `allowed-tools`, while preserving canonical body content.
+  - Added and updated test coverage for Claude agent generation, skill symlink creation, and settings merge semantics; updated the architecture module map.
+- **Verification:**
+  - `pnpm typecheck` passed.
+  - `pnpm test:run` passed.
+  - `pnpm lint` passed.
+  - `pnpm build` passed.
+- **Outcome:** Feature `claude_adapter_permissions` was reviewer-approved, validated again during closure, and marked `done`.
+
+---
+
 ## YYYY-MM-DD — Session Title
 
 - **Agent:** _agent name or identifier_
