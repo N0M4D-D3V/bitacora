@@ -1,21 +1,163 @@
 {
-   "project": "notes-cli",
-  "description": "CLI minimalista de notas en Python. Sirve como ejemplo didáctico de Harness Engineering.",
+  "project": "bitacora",
+  "description": "Operational backlog for the Bitacora v1 CLI and harness, derived from docs/spec.md.",
   "rules": {
     "one_feature_at_a_time": true,
     "require_tests_to_close": true,
     "valid_status": ["pending", "in_progress", "done", "blocked"]
   },
-  "features":[
+  "features": [
     {
       "id": 1,
-      "name": "sample_feature",
-      "title": "Example Feature",
-      "description": "This is just an example feature.",
-      "acceptance": [
-        "",
+      "name": "cli_bootstrap",
+      "title": "CLI bootstrap and packaging foundation",
+      "description": "Create the TypeScript CLI entrypoint, command parser, executable binary, and bundled template resolution needed by the rest of v1.",
+      "scope": "Bootstrap the executable surface and packaging only; no business commands or memory mutations yet.",
+      "spec_refs": [
+        "§1 Overview & Goals",
+        "§6 CLI introduction",
+        "Appendix B implementation guidance"
       ],
+      "spec_file": "docs/features/001-cli-bootstrap.md",
+      "acceptance": [],
       "status": "done"
     },
+    {
+      "id": 2,
+      "name": "init_core_layout",
+      "title": "Init core and .bitacora layout",
+      "description": "Implement the base init flow that materializes the filesystem layout, harness files, memory files, root AGENTS.md behavior, and top-level symlinks.",
+      "scope": "Create the canonical project skeleton and preserve pre-existing AGENTS.md; exclude canonical agent content and adapter-specific generation details.",
+      "spec_refs": [
+        "§3 Filesystem Layout",
+        "§4.1 AGENTS.md",
+        "§4.2 Harness files",
+        "§8 steps 1, 2, 3, 4, 5, 8, 9, 11"
+      ],
+      "spec_file": "docs/features/002-init-core-layout.md",
+      "acceptance": ["AC-INIT-01", "AC-INIT-02", "AC-INIT-03", "AC-INIT-04", "AC-INIT-05"],
+      "status": "done"
+    },
+    {
+      "id": 3,
+      "name": "canonical_agents_and_codex_skill",
+      "title": "Canonical agents and Codex skill seeds",
+      "description": "Ship the canonical role markdown files and the canonical Bitacora skill used by adapters and Codex.",
+      "scope": "Seed `.bitacora/agents/*` and `.bitacora/skills/bitacora-cli/SKILL.md`; exclude adapter merge logic and sync orchestration.",
+      "spec_refs": ["§5.1 Canonical roles", "§7.3 Codex", "Appendix A", "§8 steps 6 and 7"],
+      "spec_file": "docs/features/003-canonical-agents-and-codex-skill.md",
+      "acceptance": ["AC-INIT-01", "AC-ADAPT-03"],
+      "status": "done"
+    },
+    {
+      "id": 4,
+      "name": "claude_adapter_permissions",
+      "title": "Claude adapter and permissions merge",
+      "description": "Generate Claude agent outputs, create the Claude skill symlink, and deep-merge deny rules into `.claude/settings.json` without clobbering user data.",
+      "scope": "Implement Claude-specific adapter generation and deny-rule merge semantics only; do not add OpenCode generation or global sync orchestration.",
+      "spec_refs": ["§7.1 Claude Code", "§5.2 runtime enforcement layer"],
+      "spec_file": "docs/features/004-claude-adapter-permissions.md",
+      "acceptance": [
+        "AC-PERM-01",
+        "AC-PERM-02",
+        "AC-PERM-03",
+        "AC-ADAPT-01",
+        "AC-ADAPT-02",
+        "AC-ADAPT-03"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 5,
+      "name": "opencode_adapter",
+      "title": "OpenCode adapter",
+      "description": "Generate the OpenCode adapter output from canonical agent definitions and register it in the adapter set.",
+      "scope": "Implement OpenCode generation path and registration pattern only; exclude permission enforcement beyond what OpenCode supports in v1.",
+      "spec_refs": ["§7.2 OpenCode", "§7.4 Adding a new adapter"],
+      "spec_file": "docs/features/005-opencode-adapter.md",
+      "acceptance": ["AC-ADAPT-01", "AC-ADAPT-02", "AC-ADAPT-03"],
+      "status": "pending"
+    },
+    {
+      "id": 6,
+      "name": "memory_storage_foundation",
+      "title": "Memory storage foundation",
+      "description": "Build the schema-validated storage layer for current, history, and lessons with locking, atomic writes, and shared validation behavior.",
+      "scope": "Deliver file schemas, parsers, lock handling, and atomic persistence primitives; exclude command workflows and permission matrix UX.",
+      "spec_refs": [
+        "§4.3 Memory files",
+        "§6.2 Validation & errors",
+        "§5.2 CLI enforcement infrastructure"
+      ],
+      "spec_file": "docs/features/006-memory-storage-foundation.md",
+      "acceptance": ["AC-MEM-05", "AC-MEM-06", "AC-MEM-07"],
+      "status": "pending"
+    },
+    {
+      "id": 7,
+      "name": "current_and_session_flow",
+      "title": "Current and session flow",
+      "description": "Implement session lifecycle commands plus current-state commands with role-aware permission checks.",
+      "scope": "Cover `session start`, `session end`, `current log`, `current status`, `current set`, and `current show`; exclude lessons/history browsing and search.",
+      "spec_refs": [
+        "§5.2 Permission matrix",
+        "§5.3 Session state machine",
+        "§6.1 session and current commands"
+      ],
+      "spec_file": "docs/features/007-current-and-session-flow.md",
+      "acceptance": ["AC-MEM-03", "AC-MEM-04", "AC-SESS-01", "AC-SESS-02", "AC-SESS-03"],
+      "status": "pending"
+    },
+    {
+      "id": 8,
+      "name": "history_lessons_commands",
+      "title": "History and lessons commands",
+      "description": "Implement append/show flows for history and CRUD basics for lessons on top of the validated memory layer.",
+      "scope": "Cover `history append --from-current`, `history show`, `lessons add`, `lessons update`, and `lessons list`; exclude search and doctor diagnostics.",
+      "spec_refs": ["§6.1 history and lessons commands"],
+      "spec_file": "docs/features/008-history-lessons-commands.md",
+      "acceptance": ["AC-MEM-01", "AC-MEM-02", "AC-MEM-04"],
+      "status": "pending"
+    },
+    {
+      "id": 9,
+      "name": "lexical_search_commands",
+      "title": "Lexical search commands",
+      "description": "Add lexical search across lessons and history with the explicit v1 semantic-search rejection path.",
+      "scope": "Implement case-insensitive substring search and `--semantic` exit behavior only; exclude embeddings or ranking systems.",
+      "spec_refs": ["§6.3 Search", "§6.1 history search and lessons search"],
+      "spec_file": "docs/features/009-lexical-search-commands.md",
+      "acceptance": ["AC-SEARCH-01", "AC-SEARCH-02", "AC-SEARCH-03"],
+      "status": "pending"
+    },
+    {
+      "id": 10,
+      "name": "sync_adapters",
+      "title": "Sync adapters",
+      "description": "Implement `bitacora sync` as the global regeneration command for all adapter outputs from canonical sources.",
+      "scope": "Regenerate every adapter deterministically without changing unrelated files; exclude init skeleton creation and doctor diagnostics.",
+      "spec_refs": ["§6.1 bitacora sync", "§7 Adapters"],
+      "spec_file": "docs/features/010-sync-adapters.md",
+      "acceptance": ["AC-INIT-03", "AC-ADAPT-01", "AC-ADAPT-02", "AC-ADAPT-03"],
+      "status": "pending"
+    },
+    {
+      "id": 11,
+      "name": "doctor_checks",
+      "title": "Doctor checks",
+      "description": "Implement `bitacora doctor` reporting for structure, schema validity, symlinks, adapter drift, permissions, and memory sizes.",
+      "scope": "Add diagnostics and exit-code behavior for doctor only; exclude mutation commands and repair flows.",
+      "spec_refs": ["§6.4 bitacora doctor"],
+      "spec_file": "docs/features/011-doctor-checks.md",
+      "acceptance": [
+        "AC-DOCT-01",
+        "AC-DOCT-02",
+        "AC-DOCT-03",
+        "AC-DOCT-04",
+        "AC-DOCT-05",
+        "AC-DOCT-06"
+      ],
+      "status": "pending"
+    }
   ]
 }

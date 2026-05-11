@@ -37,8 +37,11 @@ is how repos become haunted.
 
 | Module / Path | Responsibility | Notes |
 |---------------|----------------|-------|
-| `src/index.ts` | _Entry point / public API_ | _Define exported surface here._ |
-| `src/...` | _TBD_ | _Add modules as the project evolves._ |
+| `src/index.ts` | CLI package entry point and public exports | Runs the CLI when executed directly and re-exports the bootstrap surface. |
+| `src/cli.ts` | Command tree construction and parse execution | Keeps commander wiring isolated from the entrypoint shell. |
+| `src/bitacora-error.ts` | Shared domain error type | Provides explicit exit-code carrying errors for CLI operations. |
+| `src/init-command.ts` | `bitacora init` filesystem orchestration | Creates the core project layout and preserves user-owned root files. |
+| `src/template-resolver.ts` | Bundled template path resolution | Resolves packaged template assets from either `src/` or `dist/`. |
 
 ## Data Flow
 

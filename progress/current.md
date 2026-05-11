@@ -5,20 +5,17 @@
 > While working, **keep it updated in real time**, not only at the end.
 
 - **Current feature:** _none_
-- **Started at:** _—_
-- **Agent:** _—_
+- **Started at:** _n/a_
+- **Agent:** _n/a_
 
 ## Plan
 
-_Describe in 3-5 bullet points what you are going to do before touching the code._
+- _No active session._
 
 ## Logbook
 
-_Record every significant step here: created files, decisions, blockers, etc._
-
-- ...
+- _No active session._
 
 ## Next Step
 
-_If the session is interrupted, describe the very first thing
-the next session should do._
+Start the next pending feature by re-reading `AGENTS.md`, `progress/current.md`, and `feature_list.json`.

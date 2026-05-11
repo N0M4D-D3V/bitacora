@@ -8,11 +8,7 @@
   },
 
   "files": {
-    "ignore": [
-      "dist",
-      "coverage",
-      "node_modules"
-    ]
+    "includes": ["**", "!dist", "!coverage", "!node_modules"]
   },
 
   "formatter": {
