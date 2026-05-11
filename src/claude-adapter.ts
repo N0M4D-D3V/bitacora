@@ -5,6 +5,8 @@
 import { access, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { parseCanonicalAgentMarkdown } from './canonical-agent-markdown.js';
+
 type SyncClaudeAdapterOptions = {
   cwd?: string;
 };
@@ -98,52 +100,6 @@ function translateClaudeAgentMarkdown(markdown: string): string {
 
   return `${serializeClaudeAgentFrontmatter(claudeFrontmatter)}\n\n${body}`;
 }
-
-function parseCanonicalAgentMarkdown(markdown: string): {
-  frontmatter: { name: string; description: string };
-  body: string;
-} {
-  const normalized = markdown.replace(/\r\n/g, '\n');
-
-  if (!normalized.startsWith('---\n')) {
-    throw new Error('Canonical agent markdown must start with YAML frontmatter');
-  }
-
-  const frontmatterEnd = normalized.indexOf('\n---\n', 4);
-
-  if (frontmatterEnd === -1) {
-    throw new Error('Canonical agent markdown frontmatter is not terminated');
-  }
-
-  const frontmatterLines = normalized.slice(4, frontmatterEnd).split('\n');
-  const frontmatterEntries = new Map<string, string>();
-
-  for (const line of frontmatterLines) {
-    const separatorIndex = line.indexOf(':');
-
-    if (separatorIndex === -1) {
-      continue;
-    }
-
-    const key = line.slice(0, separatorIndex).trim();
-    const value = line.slice(separatorIndex + 1).trim();
-
-    frontmatterEntries.set(key, value);
-  }
-
-  const name = frontmatterEntries.get('name');
-  const description = frontmatterEntries.get('description');
-
-  if (!name || !description) {
-    throw new Error('Canonical agent markdown must include name and description frontmatter');
-  }
-
-  return {
-    frontmatter: { name, description },
-    body: normalized.slice(frontmatterEnd + '\n---\n'.length),
-  };
-}
-
 function serializeClaudeAgentFrontmatter(frontmatter: ClaudeAgentFrontmatter): string {
   return [
     '---',

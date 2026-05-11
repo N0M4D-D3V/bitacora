@@ -76,7 +76,7 @@
       "spec_refs": ["§7.2 OpenCode", "§7.4 Adding a new adapter"],
       "spec_file": "docs/features/005-opencode-adapter.md",
       "acceptance": ["AC-ADAPT-01", "AC-ADAPT-02", "AC-ADAPT-03"],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 6,

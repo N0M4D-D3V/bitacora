@@ -4,9 +4,9 @@
 > are moved to `history.md`.
 > While working, **keep it updated in real time**, not only at the end.
 
-- **Current feature:** _none_
-- **Started at:** _n/a_
-- **Agent:** _n/a_
+- **Current feature:** none
+- **Started at:** -
+- **Agent:** -
 
 ## Plan
 
@@ -14,12 +14,12 @@
 
 ## Logbook
 
-- Session closed.
+- No active session.
 
 ## Next Step
 
-Await the next feature start.
+Start a new session before making repository changes.
 
 ## Review
 
-- _No active review._
+- No active review.

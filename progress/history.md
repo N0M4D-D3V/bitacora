@@ -99,6 +99,25 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-11 - OpenCode adapter
+
+- **Agent:** `implementation developer`
+- **Feature:** `5 opencode_adapter`
+- **Plan:** Confirm the OpenCode adapter contract and output path, add failing adapter tests first, implement the minimum shared adapter orchestration needed by init, and validate the repository before review.
+- **Changes:**
+  - Added OpenCode adapter generation under `.opencode/agents/` and registered it through the shared adapter set used by init.
+  - Extracted shared canonical agent markdown parsing so Claude and OpenCode adapters translate from the same deterministic source.
+  - Added the spec-shaped `src/adapters/opencode.ts` surface with `{ name, generate, clean }`, updated adapter and init tests, and brought `docs/architecture.md` back in sync.
+- **Verification:**
+  - `pnpm typecheck` passed.
+  - `pnpm test:run` passed (9 files, 17 tests).
+  - `pnpm lint` passed.
+  - `pnpm build` passed.
+  - Reviewer final re-review approved feature 5 after the adapter-contract fix.
+- **Outcome:** Feature `opencode_adapter` completed, revalidated during closure, and marked `done`.
+
+---
+
 ## YYYY-MM-DD — Session Title
 
 - **Agent:** _agent name or identifier_

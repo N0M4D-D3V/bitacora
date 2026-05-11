@@ -45,6 +45,9 @@ describe('bitacora init', () => {
         '.claude/agents/coder.md',
         '.claude/agents/reviewer.md',
         '.claude/settings.json',
+        '.opencode/agents/manager.md',
+        '.opencode/agents/coder.md',
+        '.opencode/agents/reviewer.md',
       ];
 
       await Promise.all(
@@ -134,6 +137,18 @@ describe('bitacora init', () => {
       ) as {
         permissions: { deny: Array<{ tool: string; pattern: string }> };
       };
+      const opencodeManager = await readFile(
+        path.join(workspaceDir, '.opencode/agents/manager.md'),
+        'utf8'
+      );
+      const opencodeCoder = await readFile(
+        path.join(workspaceDir, '.opencode/agents/coder.md'),
+        'utf8'
+      );
+      const opencodeReviewer = await readFile(
+        path.join(workspaceDir, '.opencode/agents/reviewer.md'),
+        'utf8'
+      );
 
       expect(claudeSettings.permissions.deny).toEqual([
         { tool: 'Edit', pattern: '.bitacora/harness/**' },
@@ -141,6 +156,28 @@ describe('bitacora init', () => {
         { tool: 'Edit', pattern: '.bitacora/memory/**' },
         { tool: 'Write', pattern: '.bitacora/memory/**' },
       ]);
+      expect(opencodeManager).toContain(
+        'description: Orchestrates Bitacora sessions and delivery flow.'
+      );
+      expect(opencodeManager).toContain('mode: subagent\n');
+      expect(opencodeManager).toContain('permission:\n  edit: deny\n');
+      expect(opencodeManager).toContain(
+        'Owns session lifecycle, status transitions, and history archival.'
+      );
+      expect(opencodeCoder).toContain(
+        'description: Implements scoped changes and records delivery progress.'
+      );
+      expect(opencodeCoder).toContain('mode: subagent\n');
+      expect(opencodeCoder).not.toContain('permission:\n  edit: deny\n');
+      expect(opencodeCoder).toContain('Never modifies session status or closes sessions.');
+      expect(opencodeReviewer).toContain(
+        'description: Verifies completed work against Bitacora quality gates.'
+      );
+      expect(opencodeReviewer).toContain('mode: subagent\n');
+      expect(opencodeReviewer).toContain('permission:\n  edit: deny\n');
+      expect(opencodeReviewer).toContain(
+        'Never edits implementation code while acting as reviewer.'
+      );
     } finally {
       await rm(workspaceDir, { recursive: true, force: true });
     }

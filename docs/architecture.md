@@ -41,7 +41,11 @@ is how repos become haunted.
 | `src/cli.ts` | Command tree construction and parse execution | Keeps commander wiring isolated from the entrypoint shell. |
 | `src/bitacora-error.ts` | Shared domain error type | Provides explicit exit-code carrying errors for CLI operations. |
 | `src/init-command.ts` | `bitacora init` filesystem orchestration | Creates the core project layout and preserves user-owned root files. |
+| `src/adapters/index.ts` | Shared adapter registry and orchestration | Registers the runtime adapters used by init/sync and returns the deterministic generated-path list. |
+| `src/adapters/opencode.ts` | Spec-shaped OpenCode adapter contract | Exposes the OpenCode adapter as `{ name, generate, clean }` for registry use while keeping generated outputs under `.opencode/agents/`. |
+| `src/canonical-agent-markdown.ts` | Canonical agent markdown parsing | Extracts shared frontmatter/body parsing so runtime adapters translate from one deterministic canonical shape. |
 | `src/claude-adapter.ts` | Claude adapter generation and settings merge | Translates canonical agent markdown into Claude-compatible agent files, recreates the Claude skill symlink, and deep-merges deny rules into `.claude/settings.json`. |
+| `src/opencode-adapter.ts` | OpenCode adapter generation | Translates canonical agent markdown into OpenCode-compatible project agents under `.opencode/agents/`. |
 | `src/template-resolver.ts` | Bundled template path resolution | Resolves packaged template assets from either `src/` or `dist/`. |
 
 ## Data Flow

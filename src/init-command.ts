@@ -5,8 +5,8 @@
 import { access, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { syncAllAdapters } from './adapters/index.js';
 import { BitacoraError } from './bitacora-error.js';
-import { syncClaudeAdapter } from './claude-adapter.js';
 import { resolveTemplatePath } from './template-resolver.js';
 
 const BITACORA_VERSION = '1\n';
@@ -101,12 +101,7 @@ export async function runInitCommand(options: InitOptions = {}): Promise<void> {
     createdPaths
   );
 
-  await syncClaudeAdapter({ cwd });
-  createdPaths.push('.claude/agents/manager.md');
-  createdPaths.push('.claude/agents/coder.md');
-  createdPaths.push('.claude/agents/reviewer.md');
-  createdPaths.push('.claude/skills/bitacora-cli/SKILL.md');
-  createdPaths.push('.claude/settings.json');
+  createdPaths.push(...(await syncAllAdapters({ cwd })));
 
   writeStdout(`${['.bitacora', ...createdPaths].join('\n')}\n`);
 }
