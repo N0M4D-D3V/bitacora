@@ -41,6 +41,7 @@ is how repos become haunted.
 | `src/cli.ts` | Command tree construction and parse execution | Keeps commander wiring isolated from the entrypoint shell. |
 | `src/bitacora-error.ts` | Shared domain error type | Provides explicit exit-code carrying errors for CLI operations. |
 | `src/init-command.ts` | `bitacora init` filesystem orchestration | Creates the core project layout and preserves user-owned root files. |
+| `src/claude-adapter.ts` | Claude adapter generation and settings merge | Translates canonical agent markdown into Claude-compatible agent files, recreates the Claude skill symlink, and deep-merges deny rules into `.claude/settings.json`. |
 | `src/template-resolver.ts` | Bundled template path resolution | Resolves packaged template assets from either `src/` or `dist/`. |
 
 ## Data Flow

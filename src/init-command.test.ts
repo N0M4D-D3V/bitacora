@@ -41,6 +41,10 @@ describe('bitacora init', () => {
         '.bitacora/agents/coder.md',
         '.bitacora/agents/reviewer.md',
         '.bitacora/skills/bitacora-cli/SKILL.md',
+        '.claude/agents/manager.md',
+        '.claude/agents/coder.md',
+        '.claude/agents/reviewer.md',
+        '.claude/settings.json',
       ];
 
       await Promise.all(
@@ -105,18 +109,38 @@ describe('bitacora init', () => {
 
       const claudeLink = await lstat(path.join(workspaceDir, 'CLAUDE.md'));
       const geminiLink = await lstat(path.join(workspaceDir, 'GEMINI.md'));
+      const claudeSkillLink = await lstat(
+        path.join(workspaceDir, '.claude/skills/bitacora-cli/SKILL.md')
+      );
       const codexSkillLink = await lstat(
         path.join(workspaceDir, '.agents/skills/bitacora-cli/SKILL.md')
       );
 
       expect(claudeLink.isSymbolicLink()).toBe(true);
       expect(geminiLink.isSymbolicLink()).toBe(true);
+      expect(claudeSkillLink.isSymbolicLink()).toBe(true);
       expect(codexSkillLink.isSymbolicLink()).toBe(true);
       expect(await readlink(path.join(workspaceDir, 'CLAUDE.md'))).toBe('AGENTS.md');
       expect(await readlink(path.join(workspaceDir, 'GEMINI.md'))).toBe('AGENTS.md');
+      expect(await readlink(path.join(workspaceDir, '.claude/skills/bitacora-cli/SKILL.md'))).toBe(
+        '../../../.bitacora/skills/bitacora-cli/SKILL.md'
+      );
       expect(await readlink(path.join(workspaceDir, '.agents/skills/bitacora-cli/SKILL.md'))).toBe(
         '../../../.bitacora/skills/bitacora-cli/SKILL.md'
       );
+
+      const claudeSettings = JSON.parse(
+        await readFile(path.join(workspaceDir, '.claude/settings.json'), 'utf8')
+      ) as {
+        permissions: { deny: Array<{ tool: string; pattern: string }> };
+      };
+
+      expect(claudeSettings.permissions.deny).toEqual([
+        { tool: 'Edit', pattern: '.bitacora/harness/**' },
+        { tool: 'Write', pattern: '.bitacora/harness/**' },
+        { tool: 'Edit', pattern: '.bitacora/memory/**' },
+        { tool: 'Write', pattern: '.bitacora/memory/**' },
+      ]);
     } finally {
       await rm(workspaceDir, { recursive: true, force: true });
     }
@@ -239,6 +263,57 @@ describe('bitacora init', () => {
       expect(await readlink(codexSkillPath)).toBe(
         '../../../.bitacora/skills/bitacora-cli/SKILL.md'
       );
+    } finally {
+      await rm(workspaceDir, { recursive: true, force: true });
+    }
+  });
+
+  it('deep merges existing Claude settings on force init without dropping user keys', async () => {
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-init-claude-force-'));
+
+    try {
+      await execFileAsync('npm', ['run', 'build'], {
+        cwd: path.resolve(__dirname, '..'),
+      });
+
+      await execFileAsync('node', [path.resolve(__dirname, '../dist/index.js'), 'init'], {
+        cwd: workspaceDir,
+      });
+
+      await writeFile(
+        path.join(workspaceDir, '.claude/settings.json'),
+        JSON.stringify(
+          {
+            custom: { keep: true },
+            permissions: {
+              deny: [{ tool: 'Edit', pattern: '.bitacora/harness/**' }],
+            },
+          },
+          null,
+          2
+        )
+      );
+
+      await execFileAsync(
+        'node',
+        [path.resolve(__dirname, '../dist/index.js'), 'init', '--force'],
+        { cwd: workspaceDir }
+      );
+
+      const settings = JSON.parse(
+        await readFile(path.join(workspaceDir, '.claude/settings.json'), 'utf8')
+      ) as {
+        custom: { keep: boolean };
+        permissions: { deny: Array<{ tool: string; pattern: string }> };
+      };
+
+      expect(settings.custom).toEqual({ keep: true });
+      expect(settings.permissions.deny).toEqual([
+        { tool: 'Edit', pattern: '.bitacora/harness/**' },
+        { tool: 'Write', pattern: '.bitacora/harness/**' },
+        { tool: 'Edit', pattern: '.bitacora/memory/**' },
+        { tool: 'Write', pattern: '.bitacora/memory/**' },
+      ]);
     } finally {
       await rm(workspaceDir, { recursive: true, force: true });
     }
