@@ -194,6 +194,25 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-12 - Sync adapters
+
+- **Agent:** `developer (gpt-5.4)`
+- **Feature:** `F10 sync_adapters`
+- **Plan:** Review the F10 sync blocker scope and existing CLI integration test pattern, make the `bitacora sync` CLI integration test self-contained so it no longer races on shared `dist/index.js`, then rerun the required validation suite before closure.
+- **Changes:**
+  - Investigated the approved F10 sync blocker against the existing CLI integration pattern and confirmed the shared built entrypoint was the flaky dependency during `vitest run`.
+  - Updated `src/cli.test.ts` to build a per-test CLI bundle under a temporary repo-local directory, copy templates beside it, and execute that isolated entrypoint for `init` and `sync` flows.
+  - Corrected the Biome formatting follow-up, revalidated the repository during closure, marked F10 as `done`, archived the session summary, and reset `progress/current.md` for the next feature.
+- **Verification:**
+  - `pnpm typecheck` passed.
+  - `pnpm test:run` passed (`12` files, `44` tests).
+  - `pnpm lint` passed.
+  - `pnpm build` passed.
+  - Reviewer approval for F10 was already in place before closure; no leftover temporary artifacts remained to remove.
+- **Outcome:** Feature `sync_adapters` is reviewer-approved, revalidated during closure, and marked `done`.
+
+---
+
 ## YYYY-MM-DD — Session Title
 
 - **Agent:** _agent name or identifier_

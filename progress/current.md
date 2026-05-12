@@ -5,8 +5,8 @@
 > While working, **keep it updated in real time**, not only at the end.
 
 - **Current feature:** _none_
-- **Started at:** _not started_
-- **Agent:** _unassigned_
+- **Started at:** _n/a_
+- **Agent:** _n/a_
 
 ## Plan
 
@@ -18,8 +18,8 @@
 
 ## Next Step
 
-Start the next pending feature by following `AGENTS.md`.
+- Select the next pending feature and record its plan before implementation.
 
 ## Review
 
-- _No active review._
+- No active feature. Repository is ready for the next session.

@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, readFile, readlink, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -14,6 +14,7 @@ describe('syncAllAdapters', () => {
     try {
       await mkdir(path.join(workspaceDir, '.bitacora/agents'), { recursive: true });
       await mkdir(path.join(workspaceDir, '.bitacora/skills/bitacora-cli'), { recursive: true });
+      await mkdir(path.join(workspaceDir, '.agents/skills/bitacora-cli'), { recursive: true });
 
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/manager.md'),
@@ -41,6 +42,12 @@ describe('syncAllAdapters', () => {
       await expect(
         readFile(path.join(workspaceDir, '.opencode/agents/manager.md'), 'utf8')
       ).resolves.toContain('description: Manager\n');
+      const codexSkillPath = path.join(workspaceDir, '.agents/skills/bitacora-cli/SKILL.md');
+
+      expect((await lstat(codexSkillPath)).isSymbolicLink()).toBe(true);
+      expect(await readlink(codexSkillPath)).toBe(
+        '../../../.bitacora/skills/bitacora-cli/SKILL.md'
+      );
     } finally {
       await rm(workspaceDir, { recursive: true, force: true });
     }

@@ -94,13 +94,6 @@ export async function runInitCommand(options: InitOptions = {}): Promise<void> {
 
   await createPreservedRelativeSymlink(cwd, 'AGENTS.md', 'CLAUDE.md', createdPaths, writeStderr);
   await createPreservedRelativeSymlink(cwd, 'AGENTS.md', 'GEMINI.md', createdPaths, writeStderr);
-  await createGeneratedRelativeSymlink(
-    cwd,
-    '.bitacora/skills/bitacora-cli/SKILL.md',
-    '.agents/skills/bitacora-cli/SKILL.md',
-    createdPaths
-  );
-
   createdPaths.push(...(await syncAllAdapters({ cwd })));
 
   writeStdout(`${['.bitacora', ...createdPaths].join('\n')}\n`);
@@ -150,19 +143,4 @@ async function createPreservedRelativeSymlink(
 
     writeStderr(`warning: preserving existing ${linkRelativePath}\n`);
   }
-}
-
-async function createGeneratedRelativeSymlink(
-  cwd: string,
-  targetRelativePath: string,
-  linkRelativePath: string,
-  createdPaths: string[]
-): Promise<void> {
-  const targetPath = path.join(cwd, targetRelativePath);
-  const linkPath = path.join(cwd, linkRelativePath);
-  const relativeTarget = path.relative(path.dirname(linkPath), targetPath);
-
-  await rm(linkPath, { force: true });
-  await symlink(relativeTarget, linkPath);
-  createdPaths.push(linkRelativePath);
 }

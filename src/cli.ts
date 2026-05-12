@@ -4,6 +4,7 @@
 
 import { Command, CommanderError } from 'commander';
 
+import { runSyncCommand } from './adapters/index.js';
 import { BitacoraError } from './bitacora-error.js';
 import {
   runCurrentLogCommand,
@@ -231,7 +232,11 @@ export function createCliProgram(io: CliIo = defaultIo): Command {
       );
     });
 
-  program.command('sync');
+  program.command('sync').action(async () => {
+    await runSyncCommand({
+      writeStdout: io.writeStdout,
+    });
+  });
   program.command('doctor');
 
   return program;

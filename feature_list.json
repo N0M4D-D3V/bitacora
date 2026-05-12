@@ -139,7 +139,7 @@
       "spec_refs": ["§6.1 bitacora sync", "§7 Adapters"],
       "spec_file": "docs/features/010-sync-adapters.md",
       "acceptance": ["AC-INIT-03", "AC-ADAPT-01", "AC-ADAPT-02", "AC-ADAPT-03"],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 11,
