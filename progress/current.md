@@ -4,22 +4,22 @@
 > are moved to `history.md`.
 > While working, **keep it updated in real time**, not only at the end.
 
-- **Current feature:** none
-- **Started at:** -
-- **Agent:** -
+- **Current feature:** _none_
+- **Started at:** _not started_
+- **Agent:** _unassigned_
 
 ## Plan
 
-- No active session.
+- _No active session._
 
 ## Logbook
 
-- No active session.
+- _No active session._
 
 ## Next Step
 
-Start a new session before making repository changes.
+Start the next pending feature by following `AGENTS.md`.
 
 ## Review
 
-- No active review.
+- _No active review._

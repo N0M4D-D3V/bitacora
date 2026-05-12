@@ -118,6 +118,25 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-12 - Memory storage foundation
+
+- **Agent:** `implementation developer`
+- **Feature:** `F06 memory_storage_foundation`
+- **Plan:** Close the reviewer-approved memory storage session by re-validating the repository, recording the final session summary, and marking the feature complete.
+- **Changes:**
+  - Confirmed the approved F06 implementation remains the current repository state, including the exact-path `.bitacora/.lock` storage semantics and the corresponding regression coverage.
+  - Updated `feature_list.json` so F06 now reflects its final `done` status.
+  - Moved the approved session summary out of `progress/current.md` into the append-only history log and reset `progress/current.md` for the next feature.
+- **Verification:**
+  - `pnpm typecheck` passed.
+  - `pnpm test:run` passed (10 files, 25 tests).
+  - `pnpm lint` passed.
+  - `pnpm test:coverage` passed.
+  - `pnpm build` passed.
+- **Outcome:** Feature `memory_storage_foundation` is reviewer-approved, revalidated during closure, and marked `done`.
+
+---
+
 ## YYYY-MM-DD — Session Title
 
 - **Agent:** _agent name or identifier_

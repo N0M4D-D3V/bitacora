@@ -91,7 +91,7 @@
       ],
       "spec_file": "docs/features/006-memory-storage-foundation.md",
       "acceptance": ["AC-MEM-05", "AC-MEM-06", "AC-MEM-07"],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 7,
