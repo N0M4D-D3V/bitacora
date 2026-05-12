@@ -106,7 +106,7 @@
       ],
       "spec_file": "docs/features/007-current-and-session-flow.md",
       "acceptance": ["AC-MEM-03", "AC-MEM-04", "AC-SESS-01", "AC-SESS-02", "AC-SESS-03"],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 8,
@@ -117,7 +117,7 @@
       "spec_refs": ["§6.1 history and lessons commands"],
       "spec_file": "docs/features/008-history-lessons-commands.md",
       "acceptance": ["AC-MEM-01", "AC-MEM-02", "AC-MEM-04"],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 9,

@@ -5,6 +5,25 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-12 - History and lessons commands
+
+- **Agent:** `developer`
+- **Feature:** `F08 history_lessons_commands`
+- **Plan:** Review existing memory and CLI patterns, add failing acceptance-focused tests first for history/lessons flows, then implement the minimum command orchestration and validate the repository before closure.
+- **Changes:**
+  - Added acceptance-oriented test coverage for `history show`, `history append --from-current`, `lessons add`, `lessons update`, and `lessons list` before implementation.
+  - Implemented `src/history-lessons-command.ts`, wired the CLI handlers, and kept all history/lessons mutations behind the validated memory storage boundary.
+  - Updated `docs/architecture.md` to document the new command module and completed closure bookkeeping by promoting F08 to `done` and archiving this session.
+- **Verification:**
+  - `pnpm typecheck` passed.
+  - `pnpm test:run` passed (`12` files, `38` tests).
+  - `pnpm lint` passed.
+  - `pnpm build` passed.
+  - Reviewer approved F08 before closure; no leftover temporary artifacts remained to remove.
+- **Outcome:** Feature `history_lessons_commands` is reviewer-approved, revalidated during closure, and marked `done`.
+
+---
+
 ## 2026-05-11 - Backlog rebuild from spec
 
 - **Agent:** `Codex`
@@ -134,6 +153,25 @@ Do not edit previous entries. Only append new entries at the end.
   - `pnpm test:coverage` passed.
   - `pnpm build` passed.
 - **Outcome:** Feature `memory_storage_foundation` is reviewer-approved, revalidated during closure, and marked `done`.
+
+---
+
+## 2026-05-12 - Current and session flow
+
+- **Agent:** `developer (gpt-5.4)`
+- **Feature:** `F07 current_and_session_flow`
+- **Plan:** Review F07 requirements, nearby CLI/storage code, and permission/session specs; add failing tests first for current/session flows and role-aware permission checks; implement the minimum command orchestration needed to pass F07 validation.
+- **Changes:**
+  - Added F07 acceptance-oriented tests for current/session workflows before implementation.
+  - Implemented `current` and `session` command handlers plus CLI wiring and updated the architecture map for the new module.
+  - Added the AC-MEM-04 blocker follow-up for `history append --from-current`, including manager-only enforcement, archival tests, and the storage-backed archival/reset flow.
+- **Verification:**
+  - `pnpm test:run` passed (`11` files, `33` tests).
+  - `pnpm typecheck` passed.
+  - `pnpm lint` passed.
+  - `pnpm build` passed.
+  - Reviewer approved `F07 current_and_session_flow`, including the AC-MEM-04 blocker follow-up.
+- **Outcome:** Feature `current_and_session_flow` is reviewer-approved, revalidated during closure, and marked `done`.
 
 ---
 
