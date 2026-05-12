@@ -15,9 +15,11 @@ import {
   runSessionStartCommand,
 } from './current-session-command.js';
 import {
+  runHistorySearchCommand,
   runHistoryShowCommand,
   runLessonsAddCommand,
   runLessonsListCommand,
+  runLessonsSearchCommand,
   runLessonsUpdateCommand,
 } from './history-lessons-command.js';
 import { runInitCommand } from './init-command.js';
@@ -157,7 +159,24 @@ export function createCliProgram(io: CliIo = defaultIo): Command {
         writeStderr: io.writeStderr,
       });
     });
-  history.command('search').argument('<query>').option('--semantic').option('--feature <name>');
+  history
+    .command('search')
+    .argument('<query>')
+    .option('--semantic')
+    .option('--feature <name>')
+    .action(async (query: string, options: { semantic?: boolean; feature?: string }) => {
+      await runHistorySearchCommand(
+        {
+          query,
+          ...(options.semantic !== undefined ? { semantic: options.semantic } : {}),
+          ...(options.feature !== undefined ? { feature: options.feature } : {}),
+        },
+        {
+          writeStdout: io.writeStdout,
+          writeStderr: io.writeStderr,
+        }
+      );
+    });
 
   const lessons = program.command('lessons');
   lessons
@@ -193,7 +212,24 @@ export function createCliProgram(io: CliIo = defaultIo): Command {
         writeStderr: io.writeStderr,
       });
     });
-  lessons.command('search').argument('<query>').option('--semantic').option('--feature <name>');
+  lessons
+    .command('search')
+    .argument('<query>')
+    .option('--semantic')
+    .option('--feature <name>')
+    .action(async (query: string, options: { semantic?: boolean; feature?: string }) => {
+      await runLessonsSearchCommand(
+        {
+          query,
+          ...(options.semantic !== undefined ? { semantic: options.semantic } : {}),
+          ...(options.feature !== undefined ? { feature: options.feature } : {}),
+        },
+        {
+          writeStdout: io.writeStdout,
+          writeStderr: io.writeStderr,
+        }
+      );
+    });
 
   program.command('sync');
   program.command('doctor');

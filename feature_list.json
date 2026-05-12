@@ -128,7 +128,7 @@
       "spec_refs": ["§6.3 Search", "§6.1 history search and lessons search"],
       "spec_file": "docs/features/009-lexical-search-commands.md",
       "acceptance": ["AC-SEARCH-01", "AC-SEARCH-02", "AC-SEARCH-03"],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 10,

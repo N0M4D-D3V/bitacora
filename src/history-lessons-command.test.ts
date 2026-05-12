@@ -10,9 +10,11 @@ import { describe, expect, it } from 'vitest';
 
 import { BitacoraError } from './bitacora-error.js';
 import {
+  runHistorySearchCommand,
   runHistoryShowCommand,
   runLessonsAddCommand,
   runLessonsListCommand,
+  runLessonsSearchCommand,
   runLessonsUpdateCommand,
 } from './history-lessons-command.js';
 
@@ -84,6 +86,140 @@ describe('history and lessons commands', () => {
         },
       ]);
     } finally {
+      await workspace.cleanup();
+    }
+  });
+
+  it('searches history using case-insensitive substring matching across searchable fields', async () => {
+    const workspace = await createCommandWorkspace('bitacora-history-search-');
+    const stdout: string[] = [];
+
+    try {
+      await writeFile(
+        workspace.historyPath,
+        `${[
+          {
+            agent: 'manager',
+            feature: 'F08',
+            date: '2026-05-12T11:00:00.000Z',
+            plan: ['Ship lexical search'],
+            bitacora: [
+              { ts: '2026-05-12T11:05:00.000Z', agent: 'coder', msg: 'Checked LESSON reuse' },
+            ],
+            verification: { process: 'pnpm test:run', result: 'passed' },
+            close: 'done',
+          },
+          {
+            agent: 'manager',
+            feature: 'F09',
+            date: '2026-05-12T12:00:00.000Z',
+            plan: ['Prepare review handoff'],
+            bitacora: [
+              { ts: '2026-05-12T12:05:00.000Z', agent: 'coder', msg: 'No matching phrase here' },
+            ],
+            verification: { process: 'pnpm lint', result: 'passed' },
+            close: 'blocked',
+          },
+        ]
+          .map((entry) => JSON.stringify(entry))
+          .join('\n')}\n`
+      );
+
+      await runHistorySearchCommand(
+        { query: 'lesson', feature: 'F08' },
+        {
+          cwd: workspace.workspaceDir,
+          writeStdout: (chunk) => {
+            stdout.push(chunk);
+          },
+        }
+      );
+
+      expect(JSON.parse(stdout.join(''))).toEqual([
+        {
+          agent: 'manager',
+          feature: 'F08',
+          date: '2026-05-12T11:00:00.000Z',
+          plan: ['Ship lexical search'],
+          bitacora: [
+            { ts: '2026-05-12T11:05:00.000Z', agent: 'coder', msg: 'Checked LESSON reuse' },
+          ],
+          verification: { process: 'pnpm test:run', result: 'passed' },
+          close: 'done',
+        },
+      ]);
+    } finally {
+      await workspace.cleanup();
+    }
+  });
+
+  it('searches history and lessons without relying on locale-sensitive normalization', async () => {
+    const workspace = await createCommandWorkspace('bitacora-deterministic-search-');
+    const historyStdout: string[] = [];
+    const lessonsStdout: string[] = [];
+    const originalToLocaleLowerCase = String.prototype.toLocaleLowerCase;
+
+    try {
+      await writeFile(
+        workspace.historyPath,
+        `${JSON.stringify({
+          agent: 'manager',
+          feature: 'F09',
+          date: '2026-05-12T13:00:00.000Z',
+          plan: ['Inspect lexical matching invariants'],
+          bitacora: [],
+          verification: { process: 'pnpm test:run', result: 'passed' },
+          close: 'done',
+        })}\n`
+      );
+      await writeFile(
+        workspace.lessonsPath,
+        `${JSON.stringify({
+          id: 'lsn_20260512_ab12CD34',
+          feature: 'F09',
+          knowledge: 'Invariant matching should stay deterministic.',
+          date: '2026-05-12T13:00:00.000Z',
+          updated_at: '2026-05-12T13:00:00.000Z',
+        })}\n`
+      );
+
+      String.prototype.toLocaleLowerCase = function toLocaleLowerCase(): string {
+        throw new Error('locale-sensitive normalization should not be used for lexical search');
+      };
+
+      await runHistorySearchCommand(
+        { query: 'INVARIANT', feature: 'F09' },
+        {
+          cwd: workspace.workspaceDir,
+          writeStdout: (chunk) => {
+            historyStdout.push(chunk);
+          },
+        }
+      );
+      await runLessonsSearchCommand(
+        { query: 'DETERMINISTIC', feature: 'F09' },
+        {
+          cwd: workspace.workspaceDir,
+          writeStdout: (chunk) => {
+            lessonsStdout.push(chunk);
+          },
+        }
+      );
+
+      expect(JSON.parse(historyStdout.join(''))).toEqual([
+        expect.objectContaining({
+          feature: 'F09',
+          plan: ['Inspect lexical matching invariants'],
+        }),
+      ]);
+      expect(JSON.parse(lessonsStdout.join(''))).toEqual([
+        expect.objectContaining({
+          feature: 'F09',
+          knowledge: 'Invariant matching should stay deterministic.',
+        }),
+      ]);
+    } finally {
+      String.prototype.toLocaleLowerCase = originalToLocaleLowerCase;
       await workspace.cleanup();
     }
   });
@@ -189,6 +325,73 @@ describe('history and lessons commands', () => {
     } finally {
       await workspace.cleanup();
     }
+  });
+
+  it('searches lessons using case-insensitive substring matching', async () => {
+    const workspace = await createCommandWorkspace('bitacora-lessons-search-');
+    const stdout: string[] = [];
+
+    try {
+      await writeFile(
+        workspace.lessonsPath,
+        `${[
+          {
+            id: 'lsn_20260512_ab12CD34',
+            feature: 'F08',
+            knowledge: 'Prefer shared archival helpers.',
+            date: '2026-05-12T11:15:00.000Z',
+            updated_at: '2026-05-12T11:15:00.000Z',
+          },
+          {
+            id: 'lsn_20260512_ef56GH78',
+            feature: 'F09',
+            knowledge: 'Lexical search should stay deterministic.',
+            date: '2026-05-12T12:15:00.000Z',
+            updated_at: '2026-05-12T12:15:00.000Z',
+          },
+        ]
+          .map((entry) => JSON.stringify(entry))
+          .join('\n')}\n`
+      );
+
+      await runLessonsSearchCommand(
+        { query: 'lexical', feature: 'F09' },
+        {
+          cwd: workspace.workspaceDir,
+          writeStdout: (chunk) => {
+            stdout.push(chunk);
+          },
+        }
+      );
+
+      expect(JSON.parse(stdout.join(''))).toEqual([
+        {
+          id: 'lsn_20260512_ef56GH78',
+          feature: 'F09',
+          knowledge: 'Lexical search should stay deterministic.',
+          date: '2026-05-12T12:15:00.000Z',
+          updated_at: '2026-05-12T12:15:00.000Z',
+        },
+      ]);
+    } finally {
+      await workspace.cleanup();
+    }
+  });
+
+  it('rejects semantic search in v1 for both search commands', async () => {
+    await expect(
+      runHistorySearchCommand({ query: 'anything', semantic: true })
+    ).rejects.toMatchObject({
+      message: 'semantic search not implemented in v1; use lexical (omit --semantic)',
+      exitCode: 5,
+    });
+
+    await expect(
+      runLessonsSearchCommand({ query: 'anything', semantic: true })
+    ).rejects.toMatchObject({
+      message: 'semantic search not implemented in v1; use lexical (omit --semantic)',
+      exitCode: 5,
+    });
   });
 
   it('rejects updates for unknown lessons without mutating lessons.jsonl', async () => {
@@ -310,6 +513,100 @@ describe('history and lessons commands', () => {
           },
         }),
       ]);
+    } finally {
+      await runtime.cleanup();
+      await rm(workspaceDir, { recursive: true, force: true });
+    }
+  }, 30_000);
+
+  it('runs the real CLI for lexical history and lessons search plus semantic rejection', async () => {
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-search-cli-'));
+    const runtime = await createCliRuntime();
+
+    try {
+      await execFileAsync('node', [runtime.entryPath, 'init'], {
+        cwd: workspaceDir,
+      });
+
+      await execFileAsync(
+        'node',
+        [
+          runtime.entryPath,
+          'lessons',
+          'add',
+          'Deterministic lexical matching is enough.',
+          '--feature',
+          'F09',
+        ],
+        { cwd: workspaceDir }
+      );
+
+      await execFileAsync(
+        'node',
+        [
+          runtime.entryPath,
+          'current',
+          'set',
+          'feature=F09',
+          'plan=["Review lexical query support"]',
+          'next_step=archive searchable history',
+          '--agent',
+          'manager',
+        ],
+        { cwd: workspaceDir }
+      );
+
+      await execFileAsync(
+        'node',
+        [
+          runtime.entryPath,
+          'current',
+          'log',
+          'Semantic mode remains unimplemented.',
+          '--agent',
+          'coder',
+        ],
+        { cwd: workspaceDir }
+      );
+
+      await execFileAsync(
+        'node',
+        [runtime.entryPath, 'history', 'append', '--from-current', '--agent', 'manager'],
+        { cwd: workspaceDir }
+      );
+
+      const lessonsSearch = await execFileAsync(
+        'node',
+        [runtime.entryPath, 'lessons', 'search', 'LEXICAL', '--feature', 'F09'],
+        { cwd: workspaceDir }
+      );
+      expect(JSON.parse(lessonsSearch.stdout)).toEqual([
+        expect.objectContaining({
+          feature: 'F09',
+          knowledge: 'Deterministic lexical matching is enough.',
+        }),
+      ]);
+
+      const historySearch = await execFileAsync(
+        'node',
+        [runtime.entryPath, 'history', 'search', 'semantic', '--feature', 'F09'],
+        { cwd: workspaceDir }
+      );
+      expect(JSON.parse(historySearch.stdout)).toEqual([
+        expect.objectContaining({
+          feature: 'F09',
+          plan: ['Review lexical query support'],
+        }),
+      ]);
+
+      await expect(
+        execFileAsync('node', [runtime.entryPath, 'lessons', 'search', 'anything', '--semantic'], {
+          cwd: workspaceDir,
+        })
+      ).rejects.toMatchObject({
+        code: 5,
+        stderr: 'semantic search not implemented in v1; use lexical (omit --semantic)\n',
+      });
     } finally {
       await runtime.cleanup();
       await rm(workspaceDir, { recursive: true, force: true });

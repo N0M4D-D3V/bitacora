@@ -32,6 +32,12 @@ type HistoryShowOptions = {
   feature?: string;
 };
 
+type SearchOptions = {
+  query: string;
+  semantic?: boolean;
+  feature?: string;
+};
+
 type LessonsAddOptions = CommandContext & {
   feature?: string;
   agent?: string;
@@ -55,6 +61,26 @@ export async function runHistoryShowCommand(
     : featureFiltered;
 
   writeStdout(context, `${JSON.stringify(limited, null, 2)}\n`);
+}
+
+export async function runHistorySearchCommand(
+  command: SearchOptions,
+  context: CommandContext = {}
+): Promise<void> {
+  rejectSemanticSearch(command.semantic);
+
+  const historyPath = resolveMemoryPath(context.cwd, 'history.jsonl');
+  const history = await readHistoryMemory(historyPath);
+  const normalizedQuery = normalizeSearchText(command.query);
+  const filtered = history.filter((entry) => {
+    if (command.feature && entry.feature !== command.feature) {
+      return false;
+    }
+
+    return normalizeSearchText(buildHistorySearchText(entry)).includes(normalizedQuery);
+  });
+
+  writeStdout(context, `${JSON.stringify(filtered, null, 2)}\n`);
 }
 
 export async function runLessonsAddCommand(
@@ -119,6 +145,26 @@ export async function runLessonsListCommand(
   writeStdout(context, `${JSON.stringify(filtered, null, 2)}\n`);
 }
 
+export async function runLessonsSearchCommand(
+  command: SearchOptions,
+  context: CommandContext = {}
+): Promise<void> {
+  rejectSemanticSearch(command.semantic);
+
+  const lessonsPath = resolveMemoryPath(context.cwd, 'lessons.jsonl');
+  const lessons = await readLessonsMemory(lessonsPath);
+  const normalizedQuery = normalizeSearchText(command.query);
+  const filtered = lessons.filter((lesson) => {
+    if (command.feature && lesson.feature !== command.feature) {
+      return false;
+    }
+
+    return normalizeSearchText(lesson.knowledge).includes(normalizedQuery);
+  });
+
+  writeStdout(context, `${JSON.stringify(filtered, null, 2)}\n`);
+}
+
 function parseLastOption(rawValue: string): number {
   const value = Number(rawValue);
 
@@ -127,6 +173,29 @@ function parseLastOption(rawValue: string): number {
   }
 
   return value;
+}
+
+function rejectSemanticSearch(semantic: boolean | undefined): void {
+  if (semantic) {
+    throw new BitacoraError(
+      'semantic search not implemented in v1; use lexical (omit --semantic)',
+      5
+    );
+  }
+}
+
+function buildHistorySearchText(
+  entry: Awaited<ReturnType<typeof readHistoryMemory>>[number]
+): string {
+  return [
+    ...entry.plan,
+    ...entry.bitacora.map((item) => item.msg),
+    entry.verification.process,
+  ].join(' ');
+}
+
+function normalizeSearchText(value: string): string {
+  return value.toLowerCase();
 }
 
 async function resolveLessonFeature(options: LessonsAddOptions): Promise<string> {

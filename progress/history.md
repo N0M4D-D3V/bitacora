@@ -175,6 +175,25 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-12 - Lexical search commands
+
+- **Agent:** `developer`
+- **Feature:** `F09 lexical_search_commands`
+- **Plan:** Add acceptance-first lexical search coverage for history and lessons, fix deterministic normalization so search stays locale-independent, then revalidate the repository before closure.
+- **Changes:**
+  - Added failing acceptance-oriented lexical search coverage, including explicit `--semantic` rejection and a regression proving normalization does not depend on `String.prototype.toLocaleLowerCase()`.
+  - Implemented the minimum history/lessons lexical search command flow in the existing command module and kept normalization locale-independent with shared lowercase matching.
+  - Revalidated the approved feature during closure, promoted F09 to `done`, and archived the session summary for the next feature handoff.
+- **Verification:**
+  - `pnpm typecheck` passed.
+  - `pnpm test:run` passed (`12` files, `43` tests).
+  - `pnpm lint` passed.
+  - `pnpm build` passed.
+  - Reviewer approved F09 before closure; no leftover temporary artifacts remained to remove.
+- **Outcome:** Feature `lexical_search_commands` is reviewer-approved, revalidated during closure, and marked `done`.
+
+---
+
 ## YYYY-MM-DD — Session Title
 
 - **Agent:** _agent name or identifier_
