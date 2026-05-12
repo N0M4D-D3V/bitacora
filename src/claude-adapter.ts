@@ -29,9 +29,9 @@ type JsonObject = {
   [key: string]: JsonValue;
 };
 
-const CLAUDE_AGENT_FILES = ['manager.md', 'coder.md', 'reviewer.md'] as const;
+export const CLAUDE_AGENT_FILES = ['manager.md', 'coder.md', 'reviewer.md'] as const;
 
-const REQUIRED_DENY_RULES: ClaudeDenyRule[] = [
+export const REQUIRED_DENY_RULES: ClaudeDenyRule[] = [
   { tool: 'Edit', pattern: '.bitacora/harness/**' },
   { tool: 'Write', pattern: '.bitacora/harness/**' },
   { tool: 'Edit', pattern: '.bitacora/memory/**' },
@@ -88,7 +88,7 @@ async function readJsonObjectIfExists(filePath: string): Promise<JsonObject> {
   return readJsonObject(JSON.parse(await readFile(filePath, 'utf8')));
 }
 
-function translateClaudeAgentMarkdown(markdown: string): string {
+export function translateClaudeAgentMarkdown(markdown: string): string {
   const { frontmatter, body } = parseCanonicalAgentMarkdown(markdown);
   const allowedTools = CLAUDE_AGENT_TOOLS[frontmatter.name] ?? ['Read', 'Glob', 'Grep', 'Bash'];
   const claudeFrontmatter: ClaudeAgentFrontmatter = {

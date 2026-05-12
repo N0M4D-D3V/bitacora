@@ -42,6 +42,7 @@ is how repos become haunted.
 | `src/bitacora-error.ts` | Shared domain error type | Provides explicit exit-code carrying errors for CLI operations. |
 | `src/init-command.ts` | `bitacora init` filesystem orchestration | Creates the core project layout and preserves user-owned root files. |
 | `src/current-session-command.ts` | `bitacora current/*` and `session *` workflows | Enforces role-aware memory mutations and archives session state through the storage boundary. |
+| `src/doctor-command.ts` | `bitacora doctor` read-only diagnostics | Verifies structure, schemas, symlinks, adapter drift, permissions, orphan sessions, and memory sizes without mutating project data. |
 | `src/history-lessons-command.ts` | `bitacora history show` and `lessons *` workflows | Reads history views and rewrites lessons through the validated memory storage boundary. |
 | `src/memory-storage.ts` | Schema-validated Bitacora memory persistence | Defines the `current/history/lessons` schemas and keeps lock-backed atomic file writes isolated at the filesystem boundary. |
 | `src/adapters/index.ts` | Shared adapter registry and orchestration | Registers the runtime adapters used by init/sync and returns the deterministic generated-path list. |

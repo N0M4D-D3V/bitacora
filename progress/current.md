@@ -14,12 +14,12 @@
 
 ## Logbook
 
-- _No active session._
+- _Session closed. Ready for the next feature._
 
 ## Next Step
 
-- Select the next pending feature and record its plan before implementation.
+- Select the next pending feature before making changes.
 
 ## Review
 
-- No active feature. Repository is ready for the next session.
+- _No active review._

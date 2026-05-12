@@ -213,6 +213,25 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-12 - Doctor checks
+
+- **Agent:** `developer (gpt-5.4)`
+- **Feature:** `F11 doctor_checks`
+- **Plan:** Define the expected `bitacora doctor` diagnostics and edge cases, add failing tests first, implement the minimum read-only doctor flow, then revalidate and close the approved session cleanly.
+- **Changes:**
+  - Added acceptance-oriented doctor coverage first, including the missing generated-artifact regression through the real CLI.
+  - Implemented `src/doctor-command.ts`, wired the CLI command, and kept diagnostics read-only while reporting structure, schema, orphan-session, symlink, adapter-drift, deny-rule, and size failures explicitly.
+  - Revalidated the approved feature during closure, marked F11 as `done`, and removed leftover local/generated artifacts before archiving this session.
+- **Verification:**
+  - `pnpm typecheck` passed.
+  - `pnpm test:run` passed (`13` files, `52` tests).
+  - `pnpm lint` passed.
+  - `pnpm build` passed.
+  - Reviewer approval for F11 was already in place before closure; no leftover temporary artifacts remained to remove.
+- **Outcome:** Feature `doctor_checks` is reviewer-approved, revalidated during closure, and marked `done`.
+
+---
+
 ## YYYY-MM-DD — Session Title
 
 - **Agent:** _agent name or identifier_

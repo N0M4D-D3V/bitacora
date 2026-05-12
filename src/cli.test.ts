@@ -126,4 +126,29 @@ describe('runCli', () => {
       await rm(path.dirname(path.dirname(cliEntrypoint)), { recursive: true, force: true });
     }
   });
+
+  it('runs the real bundled CLI for doctor and returns exit 1 when checks fail', async () => {
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-doctor-cli-bundle-'));
+    const cliEntrypoint = await buildCliBundle();
+
+    try {
+      await execFileAsync('node', [cliEntrypoint, 'init'], {
+        cwd: workspaceDir,
+      });
+      await writeFile(path.join(workspaceDir, '.bitacora/memory/history.jsonl'), '{bad json}\n');
+
+      await expect(
+        execFileAsync('node', [cliEntrypoint, 'doctor'], {
+          cwd: workspaceDir,
+        })
+      ).rejects.toMatchObject({
+        code: 1,
+        stdout: expect.stringContaining('history.jsonl schema invalid'),
+        stderr: expect.stringContaining('doctor checks failed'),
+      });
+    } finally {
+      await rm(workspaceDir, { recursive: true, force: true });
+      await rm(path.dirname(path.dirname(cliEntrypoint)), { recursive: true, force: true });
+    }
+  });
 });

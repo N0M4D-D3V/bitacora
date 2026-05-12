@@ -650,6 +650,7 @@ async function createCliRuntime(): Promise<{ entryPath: string; cleanup: () => P
     'claude-adapter.ts',
     'cli.ts',
     'current-session-command.ts',
+    'doctor-command.ts',
     'history-lessons-command.ts',
     'index.ts',
     'init-command.ts',

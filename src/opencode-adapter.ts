@@ -19,7 +19,7 @@ type OpenCodeAgentFrontmatter = {
   };
 };
 
-const OPENCODE_AGENT_FILES = ['manager.md', 'coder.md', 'reviewer.md'] as const;
+export const OPENCODE_AGENT_FILES = ['manager.md', 'coder.md', 'reviewer.md'] as const;
 
 export async function syncOpenCodeAdapter(options: SyncOpenCodeAdapterOptions = {}): Promise<void> {
   const cwd = options.cwd ?? process.cwd();
@@ -38,7 +38,7 @@ export async function syncOpenCodeAdapter(options: SyncOpenCodeAdapterOptions = 
   );
 }
 
-function translateOpenCodeAgentMarkdown(markdown: string): string {
+export function translateOpenCodeAgentMarkdown(markdown: string): string {
   const { frontmatter, body } = parseCanonicalAgentMarkdown(markdown);
   const opencodeFrontmatter: OpenCodeAgentFrontmatter = {
     description: frontmatter.description,

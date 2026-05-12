@@ -15,6 +15,7 @@ import {
   runSessionEndCommand,
   runSessionStartCommand,
 } from './current-session-command.js';
+import { runDoctorCommand } from './doctor-command.js';
 import {
   runHistorySearchCommand,
   runHistoryShowCommand,
@@ -237,7 +238,11 @@ export function createCliProgram(io: CliIo = defaultIo): Command {
       writeStdout: io.writeStdout,
     });
   });
-  program.command('doctor');
+  program.command('doctor').action(async () => {
+    await runDoctorCommand({
+      writeStdout: io.writeStdout,
+    });
+  });
 
   return program;
 }
