@@ -1,15 +1,24 @@
 {
-  "name": "bitacora",
+  "name": "bitacora-cli",
   "version": "2.0.0",
-  "description": "",
+  "description": "CLI for scaffolding and maintaining the Bitacora agent harness and memory layer.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "bin": {
     "bitacora": "dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "README_dev.md"
   ],
   "scripts": {
     "dev": "tsup src/index.ts --watch",
@@ -25,11 +34,31 @@
     "format": "biome format . --write",
     "clean": "rm -rf dist coverage"
   },
-  "keywords": [],
+  "keywords": [
+    "agents",
+    "ai",
+    "bitacora",
+    "cli",
+    "developer-tools",
+    "harness",
+    "memory"
+  ],
   "author": "SK3L3TR",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/N0M4D-D3V/bitacora.git"
+  },
+  "homepage": "https://github.com/N0M4D-D3V/bitacora#readme",
+  "bugs": {
+    "url": "https://github.com/N0M4D-D3V/bitacora/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "packageManager": "pnpm@11.0.9",
   "dependencies": {
+    "bitacora-cli": "link:",
     "commander": "^14.0.3",
     "zod": "^4.4.3"
   },

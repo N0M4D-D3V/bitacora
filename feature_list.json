@@ -158,6 +158,17 @@
         "AC-DOCT-06"
       ],
       "status": "done"
+    },
+    {
+      "id": 12,
+      "name": "package_publish_readiness",
+      "title": "Package and publish readiness for bitacora-cli",
+      "description": "Prepare the CLI package for local pnpm linking and public npm distribution as bitacora-cli while preserving the installed bitacora command.",
+      "scope": "Restore the real-CLI verification baseline, harden npm metadata and shipped files, add publish-readiness coverage, and document the manual release workflow.",
+      "spec_refs": ["§1 Overview & Goals", "§6 CLI", "Appendix B implementation guidance"],
+      "spec_file": "docs/features/012-package-publish-readiness.md",
+      "acceptance": [],
+      "status": "done"
     }
   ]
 }

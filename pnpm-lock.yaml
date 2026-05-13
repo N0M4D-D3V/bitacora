@@ -4,10 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  bitacora-cli: 'link:'
+
 importers:
 
   .:
     dependencies:
+      bitacora-cli:
+        specifier: 'link:'
+        version: 'link:'
       commander:
         specifier: ^14.0.3
         version: 14.0.3

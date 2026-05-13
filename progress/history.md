@@ -232,6 +232,28 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-13 - Package and publish readiness
+
+- **Agent:** `Codex`
+- **Feature:** `F12 package_publish_readiness`
+- **Plan:** Restore the built-CLI baseline, rename and harden the npm package as `bitacora-cli`, add publish-readiness coverage, and document install/link/release workflows.
+- **Changes:**
+  - Fixed the built entrypoint guard so `node dist/index.js` runs the CLI when invoked through relative paths.
+  - Renamed the package to `bitacora-cli` while preserving the `bitacora` binary, added npm metadata, exports, Node engine metadata, and minimal publish files.
+  - Aligned the pnpm workspace override with `bitacora-cli`, added isolated tarball/package metadata tests, and created `README.md` plus `README_dev.md`.
+  - Verified the actual pnpm 11 local-link flow as `CI=true pnpm link --global .`; the older `pnpm link --global bitacora-cli` consumer form failed in this setup and was not documented as supported.
+- **Verification:**
+  - `pnpm typecheck` passed.
+  - `pnpm lint` passed.
+  - `pnpm test:run` passed (`13` files, `54` tests).
+  - `pnpm build` passed.
+  - `pnpm pack --dry-run` included only package runtime/docs payload: `dist`, `package.json`, `README.md`, and `README_dev.md`.
+  - `node dist/index.js --help` passed.
+  - Global link smoke passed: `bitacora --help` and `bitacora init` ran from a temporary directory and resolved bundled templates from `dist/templates`.
+- **Outcome:** Feature `package_publish_readiness` completed, verified, and marked `done`.
+
+---
+
 ## YYYY-MM-DD — Session Title
 
 - **Agent:** _agent name or identifier_
