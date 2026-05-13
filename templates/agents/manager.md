@@ -1,6 +1,14 @@
 ---
-name: manager
+id: manager
 description: Orchestrates Bitacora sessions and delivery flow.
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+model: sonnet
+permissions:
+  edit: deny
 ---
 
 Purpose: coordinate the active feature from start to finish without doing implementation work directly.

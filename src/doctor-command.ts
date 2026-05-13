@@ -11,6 +11,7 @@ import {
   CLAUDE_AGENT_FILES,
   REQUIRED_DENY_RULES,
   translateClaudeAgentMarkdown,
+  translateClaudeSkillMarkdown,
 } from './claude-adapter.js';
 import {
   type CurrentMemory,
@@ -18,7 +19,15 @@ import {
   parseHistoryMemory,
   parseLessonsMemory,
 } from './memory-storage.js';
-import { OPENCODE_AGENT_FILES, translateOpenCodeAgentMarkdown } from './opencode-adapter.js';
+import {
+  OPENCODE_AGENT_FILES,
+  translateOpenCodeAgentMarkdown,
+  translateOpenCodeSkillMarkdown,
+} from './opencode-adapter.js';
+import {
+  parseCanonicalTemplateMarkdown,
+  renderPlatformTemplate,
+} from './platform-template-renderer.js';
 
 type DoctorCommandOptions = {
   cwd?: string;
@@ -60,6 +69,7 @@ const REQUIRED_STRUCTURE_PATHS = [
   '.opencode/agents/manager.md',
   '.opencode/agents/coder.md',
   '.opencode/agents/reviewer.md',
+  '.opencode/skills/bitacora-cli/SKILL.md',
   '.agents/skills/bitacora-cli/SKILL.md',
 ] as const;
 
@@ -227,18 +237,36 @@ async function checkAdapterDrift(cwd: string): Promise<CheckResult> {
     await collectFileDrift(cwd, relativePath, expectedContent, issues);
   }
 
-  await collectSymlinkDrift(
+  const canonicalSkillContent = await readDriftTarget(
     cwd,
-    '.claude/skills/bitacora-cli/SKILL.md',
-    '../../../.bitacora/skills/bitacora-cli/SKILL.md',
+    '.bitacora/skills/bitacora-cli/SKILL.md',
     issues
   );
-  await collectSymlinkDrift(
-    cwd,
-    '.agents/skills/bitacora-cli/SKILL.md',
-    '../../../.bitacora/skills/bitacora-cli/SKILL.md',
-    issues
-  );
+
+  if (canonicalSkillContent !== undefined) {
+    await collectFileDrift(
+      cwd,
+      '.claude/skills/bitacora-cli/SKILL.md',
+      translateClaudeSkillMarkdown(canonicalSkillContent),
+      issues
+    );
+    await collectFileDrift(
+      cwd,
+      '.opencode/skills/bitacora-cli/SKILL.md',
+      translateOpenCodeSkillMarkdown(canonicalSkillContent),
+      issues
+    );
+    await collectFileDrift(
+      cwd,
+      '.agents/skills/bitacora-cli/SKILL.md',
+      renderPlatformTemplate(
+        'codex',
+        'skill',
+        parseCanonicalTemplateMarkdown(canonicalSkillContent)
+      ),
+      issues
+    );
+  }
 
   return {
     label: 'adapter-drift',
@@ -329,39 +357,6 @@ async function collectFileDrift(
   }
 
   if (hashContent(actualContent) !== hashContent(expectedContent)) {
-    issues.push(`adapter drift detected: ${relativePath}`);
-  }
-}
-
-async function collectSymlinkDrift(
-  cwd: string,
-  relativePath: string,
-  expectedTarget: string,
-  issues: string[]
-): Promise<void> {
-  const outputPath = path.join(cwd, relativePath);
-
-  try {
-    const linkStats = await lstat(outputPath);
-
-    if (!linkStats.isSymbolicLink()) {
-      issues.push(`adapter drift detected: ${relativePath}`);
-      return;
-    }
-
-    if ((await readlink(outputPath)) !== expectedTarget) {
-      issues.push(`adapter drift detected: ${relativePath}`);
-      return;
-    }
-
-    const resolvedTargetPath = path.resolve(path.dirname(outputPath), expectedTarget);
-
-    if (!(await fileExists(resolvedTargetPath))) {
-      issues.push(
-        formatDriftTargetFailure(path.relative(cwd, resolvedTargetPath), missingFileError())
-      );
-    }
-  } catch {
     issues.push(`adapter drift detected: ${relativePath}`);
   }
 }
@@ -479,10 +474,4 @@ function formatSizeTargetFailure(relativePath: string, error: unknown): string {
 
 function isMissingFileError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && 'code' in error && error.code === 'ENOENT';
-}
-
-function missingFileError(): NodeJS.ErrnoException {
-  const error = new Error('missing file') as NodeJS.ErrnoException;
-  error.code = 'ENOENT';
-  return error;
 }

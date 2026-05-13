@@ -2,10 +2,13 @@
  * Generates Claude adapter outputs from canonical Bitacora sources.
  */
 
-import { access, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { parseCanonicalAgentMarkdown } from './canonical-agent-markdown.js';
+import {
+  parseCanonicalTemplateMarkdown,
+  renderPlatformTemplate,
+} from './platform-template-renderer.js';
 
 type SyncClaudeAdapterOptions = {
   cwd?: string;
@@ -14,13 +17,6 @@ type SyncClaudeAdapterOptions = {
 type ClaudeDenyRule = {
   tool: string;
   pattern: string;
-};
-
-type ClaudeAgentFrontmatter = {
-  name: string;
-  description: string;
-  model: string;
-  allowedTools: string[];
 };
 
 type JsonValue = boolean | null | number | string | JsonValue[] | JsonObject;
@@ -37,12 +33,6 @@ export const REQUIRED_DENY_RULES: ClaudeDenyRule[] = [
   { tool: 'Edit', pattern: '.bitacora/memory/**' },
   { tool: 'Write', pattern: '.bitacora/memory/**' },
 ];
-
-const CLAUDE_AGENT_TOOLS: Record<string, string[]> = {
-  manager: ['Read', 'Glob', 'Grep', 'Bash'],
-  coder: ['Read', 'Glob', 'Grep', 'Bash', 'Edit', 'Write'],
-  reviewer: ['Read', 'Glob', 'Grep', 'Bash'],
-};
 
 export async function syncClaudeAdapter(options: SyncClaudeAdapterOptions = {}): Promise<void> {
   const cwd = options.cwd ?? process.cwd();
@@ -62,9 +52,14 @@ export async function syncClaudeAdapter(options: SyncClaudeAdapterOptions = {}):
     })
   );
 
-  await recreateRelativeSymlink(
+  const skillContent = await readFile(
     path.join(cwd, '.bitacora/skills/bitacora-cli/SKILL.md'),
-    path.join(claudeSkillDir, 'SKILL.md')
+    'utf8'
+  );
+
+  await writeFile(
+    path.join(claudeSkillDir, 'SKILL.md'),
+    translateClaudeSkillMarkdown(skillContent)
   );
 
   const settingsPath = path.join(cwd, '.claude/settings.json');
@@ -89,26 +84,15 @@ async function readJsonObjectIfExists(filePath: string): Promise<JsonObject> {
 }
 
 export function translateClaudeAgentMarkdown(markdown: string): string {
-  const { frontmatter, body } = parseCanonicalAgentMarkdown(markdown);
-  const allowedTools = CLAUDE_AGENT_TOOLS[frontmatter.name] ?? ['Read', 'Glob', 'Grep', 'Bash'];
-  const claudeFrontmatter: ClaudeAgentFrontmatter = {
-    name: frontmatter.name,
-    description: frontmatter.description,
-    model: 'sonnet',
-    allowedTools,
-  };
-
-  return `${serializeClaudeAgentFrontmatter(claudeFrontmatter)}\n\n${body}`;
+  return renderPlatformTemplate(
+    'claude-code',
+    'subagent',
+    parseCanonicalTemplateMarkdown(markdown)
+  );
 }
-function serializeClaudeAgentFrontmatter(frontmatter: ClaudeAgentFrontmatter): string {
-  return [
-    '---',
-    `name: ${frontmatter.name}`,
-    `description: ${frontmatter.description}`,
-    `model: ${frontmatter.model}`,
-    `allowed-tools: ${frontmatter.allowedTools.join(', ')}`,
-    '---',
-  ].join('\n');
+
+export function translateClaudeSkillMarkdown(markdown: string): string {
+  return renderPlatformTemplate('claude-code', 'skill', parseCanonicalTemplateMarkdown(markdown));
 }
 
 function mergeDenyRules(value: JsonValue | undefined): JsonValue[] {
@@ -163,9 +147,4 @@ function isClaudeDenyRule(value: JsonValue): value is ClaudeDenyRule {
 
 function isJsonObject(value: JsonValue | undefined): value is JsonObject {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
-async function recreateRelativeSymlink(targetPath: string, linkPath: string): Promise<void> {
-  await rm(linkPath, { force: true });
-  await symlink(path.relative(path.dirname(linkPath), targetPath), linkPath);
 }

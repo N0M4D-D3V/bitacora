@@ -6,7 +6,7 @@ describe('parseCanonicalAgentMarkdown', () => {
   it('returns canonical frontmatter and markdown body', () => {
     const markdown = [
       '---',
-      'name: manager',
+      'id: manager',
       'description: Orchestrates Bitacora sessions and delivery flow.',
       '---',
       '',
@@ -16,7 +16,7 @@ describe('parseCanonicalAgentMarkdown', () => {
 
     expect(parseCanonicalAgentMarkdown(markdown)).toEqual({
       frontmatter: {
-        name: 'manager',
+        id: 'manager',
         description: 'Orchestrates Bitacora sessions and delivery flow.',
       },
       body: 'Line 1.\nLine 2.',
@@ -24,10 +24,10 @@ describe('parseCanonicalAgentMarkdown', () => {
   });
 
   it('throws when required canonical frontmatter fields are missing', () => {
-    const markdown = ['---', 'name: manager', '---', '', 'Body.'].join('\n');
+    const markdown = ['---', 'id: manager', '---', '', 'Body.'].join('\n');
 
     expect(() => parseCanonicalAgentMarkdown(markdown)).toThrow(
-      'Canonical agent markdown must include name and description frontmatter'
+      'Canonical agent markdown must include id and description frontmatter'
     );
   });
 });

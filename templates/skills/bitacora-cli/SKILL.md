@@ -1,3 +1,10 @@
+---
+id: bitacora-cli
+description: Use the Bitacora CLI for memory-safe project state, history, and lessons workflows.
+codex:
+  exposeAsSkill: true
+---
+
 # Bitacora CLI
 
 Use the `bitacora` CLI for all writes to `.bitacora/memory/`.

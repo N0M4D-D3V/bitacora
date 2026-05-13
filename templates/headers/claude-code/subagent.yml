@@ -1,0 +1,10 @@
+---
+name: "{{id}}"
+description: "{{description}}"
+{{#if tools}}
+tools: "{{tools}}"
+{{/if}}
+{{#if model}}
+model: "{{model}}"
+{{/if}}
+---

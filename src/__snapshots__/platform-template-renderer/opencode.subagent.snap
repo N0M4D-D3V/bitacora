@@ -1,0 +1,11 @@
+---
+description: "Verify completed implementation work."
+mode: subagent
+permission:
+  edit: "deny"
+---
+
+# Verifier
+
+Line 1.
+  Indented line.

@@ -1,4 +1,4 @@
-import { lstat, mkdir, mkdtemp, readFile, readlink, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -16,8 +16,16 @@ describe('syncClaudeAdapter', () => {
 
       const canonicalManager = [
         '---',
-        'name: manager',
+        'id: manager',
         'description: Orchestrates Bitacora sessions and delivery flow.',
+        'tools:',
+        '  - Read',
+        '  - Glob',
+        '  - Grep',
+        '  - Bash',
+        'model: sonnet',
+        'permissions:',
+        '  edit: deny',
         '---',
         '',
         'Manager body line 1.',
@@ -25,16 +33,32 @@ describe('syncClaudeAdapter', () => {
       ].join('\n');
       const canonicalCoder = [
         '---',
-        'name: coder',
+        'id: coder',
         'description: Implements scoped changes and records delivery progress.',
+        'tools:',
+        '  - Read',
+        '  - Glob',
+        '  - Grep',
+        '  - Bash',
+        '  - Edit',
+        '  - Write',
+        'model: sonnet',
         '---',
         '',
         'Coder body.',
       ].join('\n');
       const canonicalReviewer = [
         '---',
-        'name: reviewer',
+        'id: reviewer',
         'description: Verifies completed work against Bitacora quality gates.',
+        'tools:',
+        '  - Read',
+        '  - Glob',
+        '  - Grep',
+        '  - Bash',
+        'model: sonnet',
+        'permissions:',
+        '  edit: deny',
         '---',
         '',
         'Reviewer body.',
@@ -45,7 +69,15 @@ describe('syncClaudeAdapter', () => {
       await writeFile(path.join(workspaceDir, '.bitacora/agents/reviewer.md'), canonicalReviewer);
       await writeFile(
         path.join(workspaceDir, '.bitacora/skills/bitacora-cli/SKILL.md'),
-        '# Bitacora CLI\n'
+        [
+          '---',
+          'id: bitacora-cli',
+          'description: Use the Bitacora CLI.',
+          '---',
+          '',
+          '# Bitacora CLI',
+          '',
+        ].join('\n')
       );
 
       await syncClaudeAdapter({ cwd: workspaceDir });
@@ -63,47 +95,50 @@ describe('syncClaudeAdapter', () => {
         'utf8'
       );
 
-      expect(managerOutput).toContain('name: manager\n');
+      expect(managerOutput).toContain('name: "manager"\n');
       expect(managerOutput).toContain(
-        'description: Orchestrates Bitacora sessions and delivery flow.\n'
+        'description: "Orchestrates Bitacora sessions and delivery flow."\n'
       );
-      expect(managerOutput).toContain('model: sonnet\n');
-      expect(managerOutput).toContain('allowed-tools: Read, Glob, Grep, Bash\n');
-      expect(managerOutput).not.toContain('\ntools: Read, Glob, Grep, Bash\n');
+      expect(managerOutput).toContain('model: "sonnet"\n');
+      expect(managerOutput).toContain('tools: "Read, Glob, Grep, Bash"\n');
+      expect(managerOutput).not.toContain('allowed-tools:');
       expect(managerOutput.endsWith('\n\nManager body line 1.\nManager body line 2.')).toBe(true);
       expect(managerOutput).toContain('Manager body line 1.\nManager body line 2.');
       expect(managerOutput).not.toBe(canonicalManager);
 
-      expect(coderOutput).toContain('name: coder\n');
+      expect(coderOutput).toContain('name: "coder"\n');
       expect(coderOutput).toContain(
-        'description: Implements scoped changes and records delivery progress.\n'
+        'description: "Implements scoped changes and records delivery progress."\n'
       );
-      expect(coderOutput).toContain('model: sonnet\n');
-      expect(coderOutput).toContain('allowed-tools: Read, Glob, Grep, Bash, Edit, Write\n');
-      expect(coderOutput).not.toContain('\ntools: Read, Glob, Grep, Bash, Edit, Write\n');
+      expect(coderOutput).toContain('model: "sonnet"\n');
+      expect(coderOutput).toContain('tools: "Read, Glob, Grep, Bash, Edit, Write"\n');
+      expect(coderOutput).not.toContain('allowed-tools:');
       expect(coderOutput.endsWith('\n\nCoder body.')).toBe(true);
       expect(coderOutput).toContain('Coder body.');
 
-      expect(reviewerOutput).toContain('name: reviewer\n');
+      expect(reviewerOutput).toContain('name: "reviewer"\n');
       expect(reviewerOutput).toContain(
-        'description: Verifies completed work against Bitacora quality gates.\n'
+        'description: "Verifies completed work against Bitacora quality gates."\n'
       );
-      expect(reviewerOutput).toContain('model: sonnet\n');
-      expect(reviewerOutput).toContain('allowed-tools: Read, Glob, Grep, Bash\n');
-      expect(reviewerOutput).not.toContain('\ntools: Read, Glob, Grep, Bash\n');
+      expect(reviewerOutput).toContain('model: "sonnet"\n');
+      expect(reviewerOutput).toContain('tools: "Read, Glob, Grep, Bash"\n');
+      expect(reviewerOutput).not.toContain('allowed-tools:');
       expect(reviewerOutput.endsWith('\n\nReviewer body.')).toBe(true);
       expect(reviewerOutput).toContain('Reviewer body.');
 
-      const skillLinkPath = path.join(workspaceDir, '.claude/skills/bitacora-cli/SKILL.md');
-      const skillLinkStats = await lstat(skillLinkPath);
+      const skillPath = path.join(workspaceDir, '.claude/skills/bitacora-cli/SKILL.md');
+      const skillStats = await lstat(skillPath);
+      const skillOutput = await readFile(skillPath, 'utf8');
       const settings = JSON.parse(
         await readFile(path.join(workspaceDir, '.claude/settings.json'), 'utf8')
       ) as {
         permissions: { deny: Array<{ tool: string; pattern: string }> };
       };
 
-      expect(skillLinkStats.isSymbolicLink()).toBe(true);
-      expect(await readlink(skillLinkPath)).toBe('../../../.bitacora/skills/bitacora-cli/SKILL.md');
+      expect(skillStats.isFile()).toBe(true);
+      expect(skillStats.isSymbolicLink()).toBe(false);
+      expect(skillOutput).toContain('name: "bitacora-cli"\n');
+      expect(skillOutput).not.toContain('id: bitacora-cli');
       expect(settings.permissions.deny).toEqual([
         { tool: 'Edit', pattern: '.bitacora/harness/**' },
         { tool: 'Write', pattern: '.bitacora/harness/**' },
@@ -125,19 +160,19 @@ describe('syncClaudeAdapter', () => {
 
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/manager.md'),
-        ['---', 'name: manager', 'description: Manager', '---', '', 'manager'].join('\n')
+        ['---', 'id: manager', 'description: Manager', '---', '', 'manager'].join('\n')
       );
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/coder.md'),
-        ['---', 'name: coder', 'description: Coder', '---', '', 'coder'].join('\n')
+        ['---', 'id: coder', 'description: Coder', '---', '', 'coder'].join('\n')
       );
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/reviewer.md'),
-        ['---', 'name: reviewer', 'description: Reviewer', '---', '', 'reviewer'].join('\n')
+        ['---', 'id: reviewer', 'description: Reviewer', '---', '', 'reviewer'].join('\n')
       );
       await writeFile(
         path.join(workspaceDir, '.bitacora/skills/bitacora-cli/SKILL.md'),
-        '# Bitacora CLI\n'
+        ['---', 'id: bitacora-cli', 'description: Skill', '---', '', '# Bitacora CLI'].join('\n')
       );
       await writeFile(
         path.join(workspaceDir, '.claude/settings.json'),

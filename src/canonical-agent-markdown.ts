@@ -3,7 +3,7 @@
  */
 
 export type CanonicalAgentFrontmatter = {
-  name: string;
+  id: string;
   description: string;
 };
 
@@ -39,17 +39,17 @@ export function parseCanonicalAgentMarkdown(markdown: string): {
     frontmatterEntries.set(key, value);
   }
 
-  const name = frontmatterEntries.get('name');
+  const id = frontmatterEntries.get('id');
   const description = frontmatterEntries.get('description');
 
-  if (!name || !description) {
-    throw new Error('Canonical agent markdown must include name and description frontmatter');
+  if (!id || !description) {
+    throw new Error('Canonical agent markdown must include id and description frontmatter');
   }
 
   const body = normalized.slice(frontmatterEnd + '\n---\n'.length).replace(/^\n/, '');
 
   return {
-    frontmatter: { name, description },
+    frontmatter: { id, description },
     body,
   };
 }

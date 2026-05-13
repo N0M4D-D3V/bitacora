@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { cp, lstat, mkdtemp, readFile, readlink, rm, writeFile } from 'node:fs/promises';
+import { cp, lstat, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -83,6 +83,7 @@ describe('runCli', () => {
       const opencodeManagerPath = path.join(workspaceDir, '.opencode/agents/manager.md');
       const claudeSkillPath = path.join(workspaceDir, '.claude/skills/bitacora-cli/SKILL.md');
       const codexSkillPath = path.join(workspaceDir, '.agents/skills/bitacora-cli/SKILL.md');
+      const opencodeSkillPath = path.join(workspaceDir, '.opencode/skills/bitacora-cli/SKILL.md');
       const unrelatedPath = path.join(workspaceDir, 'notes.txt');
       const updatedDescription =
         'description: Orchestrates Bitacora sessions, delivery flow, and sync coverage.';
@@ -100,6 +101,8 @@ describe('runCli', () => {
       await writeFile(claudeSkillPath, 'stale claude skill\n');
       await rm(codexSkillPath, { force: true });
       await writeFile(codexSkillPath, 'stale codex skill\n');
+      await rm(opencodeSkillPath, { force: true });
+      await writeFile(opencodeSkillPath, 'stale opencode skill\n');
       await writeFile(unrelatedPath, 'keep me\n');
 
       const { stderr, stdout } = await execFileAsync('node', [cliEntrypoint, 'sync'], {
@@ -110,16 +113,19 @@ describe('runCli', () => {
       expect(stdout).toContain('.claude/agents/manager.md');
       expect(stdout).toContain('.opencode/agents/manager.md');
       expect(stdout).toContain('.agents/skills/bitacora-cli/SKILL.md');
-      expect(await readFile(claudeManagerPath, 'utf8')).toContain(`${updatedDescription}\n`);
-      expect(await readFile(opencodeManagerPath, 'utf8')).toContain(`${updatedDescription}\n`);
-      expect((await lstat(claudeSkillPath)).isSymbolicLink()).toBe(true);
-      expect((await lstat(codexSkillPath)).isSymbolicLink()).toBe(true);
-      expect(await readlink(claudeSkillPath)).toBe(
-        '../../../.bitacora/skills/bitacora-cli/SKILL.md'
+      expect(stdout).toContain('.opencode/skills/bitacora-cli/SKILL.md');
+      expect(await readFile(claudeManagerPath, 'utf8')).toContain(
+        `${updatedDescription.replace('description: ', 'description: "')}"\n`
       );
-      expect(await readlink(codexSkillPath)).toBe(
-        '../../../.bitacora/skills/bitacora-cli/SKILL.md'
+      expect(await readFile(opencodeManagerPath, 'utf8')).toContain(
+        `${updatedDescription.replace('description: ', 'description: "')}"\n`
       );
+      expect((await lstat(claudeSkillPath)).isFile()).toBe(true);
+      expect((await lstat(codexSkillPath)).isFile()).toBe(true);
+      expect((await lstat(opencodeSkillPath)).isFile()).toBe(true);
+      expect(await readFile(claudeSkillPath, 'utf8')).toContain('name: "bitacora-cli"\n');
+      expect(await readFile(codexSkillPath, 'utf8')).toContain('name: "bitacora-cli"\n');
+      expect(await readFile(opencodeSkillPath, 'utf8')).toContain('name: "bitacora-cli"\n');
       expect(await readFile(unrelatedPath, 'utf8')).toBe('keep me\n');
     } finally {
       await rm(workspaceDir, { recursive: true, force: true });

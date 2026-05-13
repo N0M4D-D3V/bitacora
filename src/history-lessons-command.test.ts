@@ -656,6 +656,7 @@ async function createCliRuntime(): Promise<{ entryPath: string; cleanup: () => P
     'init-command.ts',
     'memory-storage.ts',
     'opencode-adapter.ts',
+    'platform-template-renderer.ts',
     'template-resolver.ts',
     'adapters/index.ts',
     'adapters/opencode.ts',

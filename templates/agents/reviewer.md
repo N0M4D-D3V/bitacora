@@ -1,6 +1,14 @@
 ---
-name: reviewer
+id: reviewer
 description: Verifies completed work against Bitacora quality gates.
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+model: sonnet
+permissions:
+  edit: deny
 ---
 
 Purpose: review completed work for correctness, scope control, and verification completeness.

@@ -48,6 +48,7 @@ describe('bitacora init', () => {
         '.opencode/agents/manager.md',
         '.opencode/agents/coder.md',
         '.opencode/agents/reviewer.md',
+        '.opencode/skills/bitacora-cli/SKILL.md',
       ];
 
       await Promise.all(
@@ -121,16 +122,21 @@ describe('bitacora init', () => {
 
       expect(claudeLink.isSymbolicLink()).toBe(true);
       expect(geminiLink.isSymbolicLink()).toBe(true);
-      expect(claudeSkillLink.isSymbolicLink()).toBe(true);
-      expect(codexSkillLink.isSymbolicLink()).toBe(true);
+      expect(claudeSkillLink.isFile()).toBe(true);
+      expect(claudeSkillLink.isSymbolicLink()).toBe(false);
+      expect(codexSkillLink.isFile()).toBe(true);
+      expect(codexSkillLink.isSymbolicLink()).toBe(false);
       expect(await readlink(path.join(workspaceDir, 'CLAUDE.md'))).toBe('AGENTS.md');
       expect(await readlink(path.join(workspaceDir, 'GEMINI.md'))).toBe('AGENTS.md');
-      expect(await readlink(path.join(workspaceDir, '.claude/skills/bitacora-cli/SKILL.md'))).toBe(
-        '../../../.bitacora/skills/bitacora-cli/SKILL.md'
-      );
-      expect(await readlink(path.join(workspaceDir, '.agents/skills/bitacora-cli/SKILL.md'))).toBe(
-        '../../../.bitacora/skills/bitacora-cli/SKILL.md'
-      );
+      expect(
+        await readFile(path.join(workspaceDir, '.claude/skills/bitacora-cli/SKILL.md'), 'utf8')
+      ).toContain('name: "bitacora-cli"\n');
+      expect(
+        await readFile(path.join(workspaceDir, '.agents/skills/bitacora-cli/SKILL.md'), 'utf8')
+      ).toContain('name: "bitacora-cli"\n');
+      expect(
+        await readFile(path.join(workspaceDir, '.opencode/skills/bitacora-cli/SKILL.md'), 'utf8')
+      ).toContain('name: "bitacora-cli"\n');
 
       const claudeSettings = JSON.parse(
         await readFile(path.join(workspaceDir, '.claude/settings.json'), 'utf8')
@@ -157,24 +163,24 @@ describe('bitacora init', () => {
         { tool: 'Write', pattern: '.bitacora/memory/**' },
       ]);
       expect(opencodeManager).toContain(
-        'description: Orchestrates Bitacora sessions and delivery flow.'
+        'description: "Orchestrates Bitacora sessions and delivery flow."'
       );
       expect(opencodeManager).toContain('mode: subagent\n');
-      expect(opencodeManager).toContain('permission:\n  edit: deny\n');
+      expect(opencodeManager).toContain('permission:\n  edit: "deny"\n');
       expect(opencodeManager).toContain(
         'Owns session lifecycle, status transitions, and history archival.'
       );
       expect(opencodeCoder).toContain(
-        'description: Implements scoped changes and records delivery progress.'
+        'description: "Implements scoped changes and records delivery progress."'
       );
       expect(opencodeCoder).toContain('mode: subagent\n');
-      expect(opencodeCoder).not.toContain('permission:\n  edit: deny\n');
+      expect(opencodeCoder).not.toContain('permission:');
       expect(opencodeCoder).toContain('Never modifies session status or closes sessions.');
       expect(opencodeReviewer).toContain(
-        'description: Verifies completed work against Bitacora quality gates.'
+        'description: "Verifies completed work against Bitacora quality gates."'
       );
       expect(opencodeReviewer).toContain('mode: subagent\n');
-      expect(opencodeReviewer).toContain('permission:\n  edit: deny\n');
+      expect(opencodeReviewer).toContain('permission:\n  edit: "deny"\n');
       expect(opencodeReviewer).toContain(
         'Never edits implementation code while acting as reviewer.'
       );
@@ -271,7 +277,7 @@ describe('bitacora init', () => {
     }
   });
 
-  it('recreates the generated Codex skill symlink on force init', async () => {
+  it('recreates the generated Codex skill file on force init', async () => {
     const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-init-codex-force-'));
 
     try {
@@ -296,10 +302,9 @@ describe('bitacora init', () => {
 
       const codexSkillStats = await lstat(codexSkillPath);
 
-      expect(codexSkillStats.isSymbolicLink()).toBe(true);
-      expect(await readlink(codexSkillPath)).toBe(
-        '../../../.bitacora/skills/bitacora-cli/SKILL.md'
-      );
+      expect(codexSkillStats.isFile()).toBe(true);
+      expect(codexSkillStats.isSymbolicLink()).toBe(false);
+      expect(await readFile(codexSkillPath, 'utf8')).toContain('name: "bitacora-cli"\n');
     } finally {
       await rm(workspaceDir, { recursive: true, force: true });
     }

@@ -1,4 +1,4 @@
-import { lstat, mkdir, mkdtemp, readFile, readlink, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -18,19 +18,19 @@ describe('syncAllAdapters', () => {
 
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/manager.md'),
-        ['---', 'name: manager', 'description: Manager', '---', '', 'manager'].join('\n')
+        ['---', 'id: manager', 'description: Manager', '---', '', 'manager'].join('\n')
       );
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/coder.md'),
-        ['---', 'name: coder', 'description: Coder', '---', '', 'coder'].join('\n')
+        ['---', 'id: coder', 'description: Coder', '---', '', 'coder'].join('\n')
       );
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/reviewer.md'),
-        ['---', 'name: reviewer', 'description: Reviewer', '---', '', 'reviewer'].join('\n')
+        ['---', 'id: reviewer', 'description: Reviewer', '---', '', 'reviewer'].join('\n')
       );
       await writeFile(
         path.join(workspaceDir, '.bitacora/skills/bitacora-cli/SKILL.md'),
-        '# Bitacora CLI\n'
+        ['---', 'id: bitacora-cli', 'description: Skill', '---', '', '# Bitacora CLI'].join('\n')
       );
 
       const generatedPaths = await syncAllAdapters({ cwd: workspaceDir });
@@ -38,16 +38,14 @@ describe('syncAllAdapters', () => {
       expect(generatedPaths).toEqual(GENERATED_ADAPTER_PATHS);
       await expect(
         readFile(path.join(workspaceDir, '.claude/agents/manager.md'), 'utf8')
-      ).resolves.toContain('description: Manager\n');
+      ).resolves.toContain('description: "Manager"\n');
       await expect(
         readFile(path.join(workspaceDir, '.opencode/agents/manager.md'), 'utf8')
-      ).resolves.toContain('description: Manager\n');
+      ).resolves.toContain('description: "Manager"\n');
       const codexSkillPath = path.join(workspaceDir, '.agents/skills/bitacora-cli/SKILL.md');
 
-      expect((await lstat(codexSkillPath)).isSymbolicLink()).toBe(true);
-      expect(await readlink(codexSkillPath)).toBe(
-        '../../../.bitacora/skills/bitacora-cli/SKILL.md'
-      );
+      expect((await lstat(codexSkillPath)).isFile()).toBe(true);
+      expect(await readFile(codexSkillPath, 'utf8')).toContain('name: "bitacora-cli"\n');
     } finally {
       await rm(workspaceDir, { recursive: true, force: true });
     }
@@ -61,15 +59,20 @@ describe('syncAllAdapters', () => {
 
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/manager.md'),
-        ['---', 'name: manager', 'description: Manager', '---', '', 'manager'].join('\n')
+        ['---', 'id: manager', 'description: Manager', '---', '', 'manager'].join('\n')
       );
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/coder.md'),
-        ['---', 'name: coder', 'description: Coder', '---', '', 'coder'].join('\n')
+        ['---', 'id: coder', 'description: Coder', '---', '', 'coder'].join('\n')
       );
       await writeFile(
         path.join(workspaceDir, '.bitacora/agents/reviewer.md'),
-        ['---', 'name: reviewer', 'description: Reviewer', '---', '', 'reviewer'].join('\n')
+        ['---', 'id: reviewer', 'description: Reviewer', '---', '', 'reviewer'].join('\n')
+      );
+      await mkdir(path.join(workspaceDir, '.bitacora/skills/bitacora-cli'), { recursive: true });
+      await writeFile(
+        path.join(workspaceDir, '.bitacora/skills/bitacora-cli/SKILL.md'),
+        ['---', 'id: bitacora-cli', 'description: Skill', '---', '', '# Bitacora CLI'].join('\n')
       );
 
       expect(opencodeAdapter.name).toBe('opencode');
@@ -77,7 +80,7 @@ describe('syncAllAdapters', () => {
       await opencodeAdapter.generate({ cwd: workspaceDir });
       await expect(
         readFile(path.join(workspaceDir, '.opencode/agents/manager.md'), 'utf8')
-      ).resolves.toContain('description: Manager\n');
+      ).resolves.toContain('description: "Manager"\n');
 
       await opencodeAdapter.clean({ cwd: workspaceDir });
       await expect(

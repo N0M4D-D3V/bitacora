@@ -254,6 +254,27 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-13 - Platform header layer
+
+- **Agent:** `Codex`
+- **Feature:** `F13 platform_header_layer`
+- **Plan:** Add a thin platform renderer, convert generated skills from symlinks to physical rendered files, update adapter/doctor behavior, and cover canonical frontmatter removal plus platform header snapshots.
+- **Changes:**
+  - Added static header templates under `templates/headers/` for Codex, Claude Code, and OpenCode skill/subagent outputs.
+  - Implemented `src/platform-template-renderer.ts` to parse canonical metadata, remove canonical frontmatter, render platform headers, validate ids/descriptions/fields/placeholders, resolve output paths, and detect duplicate generated paths.
+  - Migrated canonical agent/skill templates to `id` metadata and explicit optional metadata for Claude tools/model, OpenCode permissions, and Codex skill exposure.
+  - Reworked Codex, Claude, OpenCode, sync, and doctor drift behavior so generated skills are physical rendered files; Claude settings permission merging is unchanged.
+  - Updated docs, adapter/init/sync/doctor tests, runtime-copy tests, and renderer snapshot coverage.
+- **Verification:**
+  - Baseline before edits: `pnpm typecheck` passed and `pnpm test:run` passed (`13` files, `54` tests).
+  - Final `pnpm typecheck` passed.
+  - Final `pnpm test:run` passed (`14` files, `60` tests).
+  - Final `pnpm lint` passed.
+  - Final `pnpm build` passed.
+- **Outcome:** Feature `platform_header_layer` completed, verified, and marked `done`.
+
+---
+
 ## YYYY-MM-DD — Session Title
 
 - **Agent:** _agent name or identifier_

@@ -1,0 +1,11 @@
+---
+name: "verifier"
+description: "Verify completed implementation work."
+tools: "Read, Grep"
+model: "sonnet"
+---
+
+# Verifier
+
+Line 1.
+  Indented line.

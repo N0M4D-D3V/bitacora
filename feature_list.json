@@ -169,6 +169,17 @@
       "spec_file": "docs/features/012-package-publish-readiness.md",
       "acceptance": [],
       "status": "done"
+    },
+    {
+      "id": 13,
+      "name": "platform_header_layer",
+      "title": "Platform header compatibility layer",
+      "description": "Render platform-specific physical skill and subagent files from canonical Bitacora templates with validated headers and preserved semantic bodies.",
+      "scope": "Replace generated skill symlinks with rendered files, add static header templates, validate platform metadata, and keep adapter generation deterministic.",
+      "spec_refs": ["bitacora-platform-header-layer-spec-v2.md"],
+      "spec_file": "bitacora-platform-header-layer-spec-v2.md",
+      "acceptance": [],
+      "status": "done"
     }
   ]
 }

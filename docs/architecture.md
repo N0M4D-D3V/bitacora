@@ -42,14 +42,15 @@ is how repos become haunted.
 | `src/bitacora-error.ts` | Shared domain error type | Provides explicit exit-code carrying errors for CLI operations. |
 | `src/init-command.ts` | `bitacora init` filesystem orchestration | Creates the core project layout and preserves user-owned root files. |
 | `src/current-session-command.ts` | `bitacora current/*` and `session *` workflows | Enforces role-aware memory mutations and archives session state through the storage boundary. |
-| `src/doctor-command.ts` | `bitacora doctor` read-only diagnostics | Verifies structure, schemas, symlinks, adapter drift, permissions, orphan sessions, and memory sizes without mutating project data. |
+| `src/doctor-command.ts` | `bitacora doctor` read-only diagnostics | Verifies structure, schemas, root symlinks, adapter drift, permissions, orphan sessions, and memory sizes without mutating project data. |
 | `src/history-lessons-command.ts` | `bitacora history show` and `lessons *` workflows | Reads history views and rewrites lessons through the validated memory storage boundary. |
 | `src/memory-storage.ts` | Schema-validated Bitacora memory persistence | Defines the `current/history/lessons` schemas and keeps lock-backed atomic file writes isolated at the filesystem boundary. |
 | `src/adapters/index.ts` | Shared adapter registry and orchestration | Registers the runtime adapters used by init/sync and returns the deterministic generated-path list. |
-| `src/adapters/opencode.ts` | Spec-shaped OpenCode adapter contract | Exposes the OpenCode adapter as `{ name, generate, clean }` for registry use while keeping generated outputs under `.opencode/agents/`. |
-| `src/canonical-agent-markdown.ts` | Canonical agent markdown parsing | Extracts shared frontmatter/body parsing so runtime adapters translate from one deterministic canonical shape. |
-| `src/claude-adapter.ts` | Claude adapter generation and settings merge | Translates canonical agent markdown into Claude-compatible agent files, recreates the Claude skill symlink, and deep-merges deny rules into `.claude/settings.json`. |
-| `src/opencode-adapter.ts` | OpenCode adapter generation | Translates canonical agent markdown into OpenCode-compatible project agents under `.opencode/agents/`. |
+| `src/adapters/opencode.ts` | Spec-shaped OpenCode adapter contract | Exposes the OpenCode adapter as `{ name, generate, clean }` for registry use while keeping generated outputs under `.opencode/agents/` and `.opencode/skills/`. |
+| `src/canonical-agent-markdown.ts` | Legacy canonical agent markdown parsing | Preserves the narrow parser used by older tests while platform generation uses `src/platform-template-renderer.ts`. |
+| `src/platform-template-renderer.ts` | Platform header compatibility rendering | Parses canonical frontmatter, renders static platform headers from `templates/headers/`, validates output, resolves generated paths, and preserves semantic bodies. |
+| `src/claude-adapter.ts` | Claude adapter generation and settings merge | Translates canonical templates into Claude-compatible physical agent and skill files, and deep-merges deny rules into `.claude/settings.json`. |
+| `src/opencode-adapter.ts` | OpenCode adapter generation | Translates canonical templates into OpenCode-compatible physical agent and skill files under `.opencode/`. |
 | `src/template-resolver.ts` | Bundled template path resolution | Resolves packaged template assets from either `src/` or `dist/`. |
 
 ## Data Flow

@@ -1,6 +1,14 @@
 ---
-name: coder
+id: coder
 description: Implements scoped changes and records delivery progress.
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash
+  - Edit
+  - Write
+model: sonnet
 ---
 
 Purpose: implement the assigned feature, add tests, and keep the current session log accurate.
