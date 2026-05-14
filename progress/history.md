@@ -311,3 +311,20 @@ Do not edit previous entries. Only append new entries at the end.
 - **Outcome:** _final session state and feature status_
 
 ---
+
+## 2026-05-14 - OpenCode JSON ownership and merge contract
+
+- **Agent:** `developer`
+- **Feature:** `F14 opencode_json_contract`
+- **Plan:** Inspect the current OpenCode adapter and nearby merge patterns, add focused tests first for strict JSON parse/create and Bitacora-owned deep-merge semantics, implement the minimal contract helpers, and rerun validation after review follow-up fixes.
+- **Changes:**
+  - Confirmed F14 scope against the spec and kept the work isolated to the OpenCode JSON ownership/merge contract.
+  - Added focused tests for strict JSON create/parse behavior, owned-agent filtering, deep-merge boundaries, and rejection of a present-but-non-object `opencode.json.agent` value.
+  - Implemented the minimal `opencode.json` contract helpers in `src/opencode-adapter.ts` and tightened the merge path so invalid existing `agent` shapes fail explicitly instead of being silently replaced.
+- **Verification:**
+  - Baseline validation recorded in-session: `pnpm test:run` passed and `pnpm typecheck` passed.
+  - Session follow-up validation during closure: `pnpm test:run` passed (`14` files, `67` tests).
+  - Session follow-up validation during closure: `pnpm typecheck` passed.
+- **Outcome:** Feature `opencode_json_contract` was archived from the active session, marked `done`, and handed off to the next feature state.
+
+---
