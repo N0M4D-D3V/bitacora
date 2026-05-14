@@ -4,7 +4,161 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { syncOpenCodeAdapter } from './opencode-adapter.js';
+import {
+  mergeBitacoraOpenCodeAgents,
+  OpenCodeConfigError,
+  renderOpenCodeConfig,
+  syncOpenCodeAdapter,
+} from './opencode-adapter.js';
+
+describe('renderOpenCodeConfig', () => {
+  it('creates strict JSON when opencode.json does not exist', () => {
+    const rendered = renderOpenCodeConfig(undefined, {
+      manager: {
+        description: 'Manager runtime config.',
+        permission: {
+          edit: 'deny',
+        },
+      },
+    });
+
+    expect(rendered).toBe(
+      `${JSON.stringify(
+        {
+          agent: {
+            manager: {
+              description: 'Manager runtime config.',
+              permission: {
+                edit: 'deny',
+              },
+            },
+          },
+        },
+        null,
+        2
+      )}\n`
+    );
+  });
+
+  it('deep merges Bitacora-owned agent entries without clobbering unrelated config', () => {
+    const rendered = renderOpenCodeConfig(
+      JSON.stringify(
+        {
+          theme: 'midnight',
+          provider: {
+            anthropic: {
+              defaultModel: 'claude-sonnet',
+            },
+          },
+          agent: {
+            helper: {
+              description: 'User-owned helper.',
+            },
+            manager: {
+              color: 'blue',
+              permission: {
+                read: 'allow',
+              },
+            },
+          },
+        },
+        null,
+        2
+      ),
+      {
+        manager: {
+          description: 'Bitacora manager.',
+          permission: {
+            edit: 'deny',
+          },
+        },
+        reviewer: {
+          description: 'Bitacora reviewer.',
+        },
+      }
+    );
+
+    expect(JSON.parse(rendered)).toEqual({
+      theme: 'midnight',
+      provider: {
+        anthropic: {
+          defaultModel: 'claude-sonnet',
+        },
+      },
+      agent: {
+        helper: {
+          description: 'User-owned helper.',
+        },
+        manager: {
+          color: 'blue',
+          description: 'Bitacora manager.',
+          permission: {
+            read: 'allow',
+            edit: 'deny',
+          },
+        },
+        reviewer: {
+          description: 'Bitacora reviewer.',
+        },
+      },
+    });
+  });
+
+  it('rejects invalid strict JSON input', () => {
+    expect(() => renderOpenCodeConfig('{"agent":', {})).toThrowError(OpenCodeConfigError);
+    expect(() => renderOpenCodeConfig('[1,2,3]', {})).toThrowError(OpenCodeConfigError);
+  });
+
+  it('rejects a non-object existing agent key instead of overwriting it', () => {
+    expect(() =>
+      renderOpenCodeConfig(
+        JSON.stringify({
+          agent: 'user-owned-invalid-shape',
+        }),
+        {
+          manager: {
+            description: 'Bitacora manager.',
+          },
+        }
+      )
+    ).toThrowError(OpenCodeConfigError);
+  });
+});
+
+describe('mergeBitacoraOpenCodeAgents', () => {
+  it('ignores non-Bitacora agent keys from the overlay', () => {
+    const overlay = {
+      manager: {
+        description: 'Bitacora manager.',
+      },
+      helper: {
+        description: 'Should not be written.',
+      },
+    };
+
+    const merged = mergeBitacoraOpenCodeAgents(
+      {
+        agent: {
+          helper: {
+            description: 'User-owned helper.',
+          },
+        },
+      },
+      overlay
+    );
+
+    expect(merged).toEqual({
+      agent: {
+        helper: {
+          description: 'User-owned helper.',
+        },
+        manager: {
+          description: 'Bitacora manager.',
+        },
+      },
+    });
+  });
+});
 
 describe('syncOpenCodeAdapter', () => {
   it('generates OpenCode agent files with translated frontmatter and preserved canonical bodies', async () => {
