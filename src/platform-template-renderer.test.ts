@@ -154,4 +154,19 @@ describe('platform template renderer', () => {
       await readFile(path.join(snapshotDir, 'opencode.subagent.snap'), 'utf8')
     );
   });
+
+  it('parses bundled canonical agent templates with the portable frontmatter contract', async () => {
+    const templateDir = path.resolve(__dirname, '../templates/agents');
+    const templateNames = ['coder', 'manager', 'reviewer'];
+
+    await expect(
+      Promise.all(
+        templateNames.map(async (templateName) => {
+          const markdown = await readFile(path.join(templateDir, `${templateName}.md`), 'utf8');
+
+          return parseCanonicalTemplateMarkdown(markdown);
+        })
+      )
+    ).resolves.toHaveLength(3);
+  });
 });

@@ -180,6 +180,72 @@
       "spec_file": "bitacora-platform-header-layer-spec-v2.md",
       "acceptance": [],
       "status": "done"
+    },
+    {
+      "id": 14,
+      "name": "opencode_json_contract",
+      "title": "OpenCode JSON ownership and merge contract",
+      "description": "Define and implement the ownership boundaries and deep-merge semantics for Bitacora-managed OpenCode agent entries inside `opencode.json`.",
+      "scope": "Cover parsing, ownership rules, merge behavior, and conflict policy for `agent.manager`, `agent.coder`, and `agent.reviewer`; exclude generation changes and doctor drift checks.",
+      "spec_refs": ["docs/features/014-opencode-json-runtime-config.md"],
+      "spec_file": "docs/features/014-opencode-json-runtime-config.md",
+      "acceptance": ["AC-OPENCFG-01", "AC-OPENCFG-02", "AC-OPENCFG-03"],
+      "status": "pending"
+    },
+    {
+      "id": 15,
+      "name": "opencode_json_generation",
+      "title": "Generate OpenCode agent runtime config in opencode.json",
+      "description": "Generate Bitacora-owned OpenCode agent runtime configuration into `opencode.json` from canonical and adapter-owned sources.",
+      "scope": "Emit or merge `agent.manager`, `agent.coder`, and `agent.reviewer` with OpenCode runtime fields and fine-grained permissions; exclude doctor and canonical cleanup.",
+      "spec_refs": ["docs/features/014-opencode-json-runtime-config.md"],
+      "spec_file": "docs/features/014-opencode-json-runtime-config.md",
+      "acceptance": ["AC-OPENCFG-01", "AC-OPENCFG-02", "AC-OPENCFG-03", "AC-OPENCFG-04"],
+      "status": "pending"
+    },
+    {
+      "id": 16,
+      "name": "opencode_markdown_minimal_headers",
+      "title": "Reduce OpenCode markdown agents to minimal headers",
+      "description": "Keep `.opencode/agents/*.md` as semantic prompt files while removing duplicated runtime policy from their rendered headers where possible.",
+      "scope": "Adjust OpenCode header rendering and adapter snapshots to keep headers minimal and deterministic; exclude canonical template cleanup and doctor changes.",
+      "spec_refs": ["docs/features/014-opencode-json-runtime-config.md"],
+      "spec_file": "docs/features/014-opencode-json-runtime-config.md",
+      "acceptance": ["AC-OPENCFG-05"],
+      "status": "pending"
+    },
+    {
+      "id": 17,
+      "name": "canonical_template_opencode_cleanup",
+      "title": "Remove OpenCode runtime-only metadata from canonical templates",
+      "description": "Simplify canonical agent templates so they no longer carry OpenCode-only runtime configuration such as colors, temperatures, modes, or structured permission maps.",
+      "scope": "Update canonical template validation and template contents to keep only portable metadata; exclude doctor drift checks and migration conflict flows.",
+      "spec_refs": ["docs/features/014-opencode-json-runtime-config.md"],
+      "spec_file": "docs/features/014-opencode-json-runtime-config.md",
+      "acceptance": ["AC-OPENCFG-04", "AC-OPENCFG-07"],
+      "status": "pending"
+    },
+    {
+      "id": 18,
+      "name": "doctor_opencode_json_drift",
+      "title": "Detect OpenCode JSON drift in doctor",
+      "description": "Extend `bitacora doctor` to validate Bitacora-owned OpenCode config entries in `opencode.json` alongside existing generated-file drift checks.",
+      "scope": "Add diagnostics and exit behavior for missing or drifted Bitacora-managed OpenCode JSON entries; exclude migration and repair commands.",
+      "spec_refs": ["docs/features/014-opencode-json-runtime-config.md"],
+      "spec_file": "docs/features/014-opencode-json-runtime-config.md",
+      "acceptance": ["AC-OPENCFG-06"],
+      "status": "pending"
+    },
+    {
+      "id": 19,
+      "name": "opencode_json_conflict_handling",
+      "title": "Handle user conflicts in Bitacora-owned OpenCode agent names",
+      "description": "Define and implement explicit conflict behavior when user-managed `opencode.json` agent entries collide with Bitacora-owned agent names.",
+      "scope": "Handle collisions for `agent.manager`, `agent.coder`, and `agent.reviewer` with clear diagnostics and tests; exclude broader migration tooling.",
+      "spec_refs": ["docs/features/014-opencode-json-runtime-config.md"],
+      "spec_file": "docs/features/014-opencode-json-runtime-config.md",
+      "acceptance": [],
+      "status": "pending"
     }
   ]
 }
