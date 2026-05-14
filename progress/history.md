@@ -275,6 +275,26 @@ Do not edit previous entries. Only append new entries at the end.
 
 ---
 
+## 2026-05-14 - Platform header layer compliance review
+
+- **Agent:** `Codex`
+- **Feature:** `F13 platform_header_layer review correction`
+- **Plan:** Review the completed platform header layer against `bitacora-platform-header-layer-spec-v2.md`, patch only concrete compliance gaps, and re-run the requested verification suite.
+- **Changes:**
+  - Confirmed the completed renderer, adapters, static templates, snapshots, and generated output paths against the v2 spec.
+  - Fixed safe placeholder substitution so quoted YAML header values escape backslashes and double quotes before validation.
+  - Added focused renderer coverage for quote escaping and newline-bearing header placeholder rejection.
+- **Verification:**
+  - Baseline `pnpm typecheck` passed.
+  - Baseline `pnpm test:run` passed (`14` files, `60` tests).
+  - Final `pnpm typecheck` passed.
+  - Final `pnpm test:run` passed (`14` files, `61` tests).
+  - Final `pnpm lint` passed.
+  - Final `pnpm build` passed.
+- **Outcome:** Review found and corrected one platform header validation gap; feature status remains `done`.
+
+---
+
 ## YYYY-MM-DD — Session Title
 
 - **Agent:** _agent name or identifier_

@@ -259,7 +259,9 @@ function renderHeaderTemplate(template: string, context: ParsedYamlObject): stri
   rendered = rendered.replace(/{{([a-zA-Z0-9_.]+)}}/g, (_match, key: string) => {
     const value = readPath(context, key);
 
-    return typeof value === 'string' || typeof value === 'boolean' ? String(value) : `{{${key}}}`;
+    return typeof value === 'string' || typeof value === 'boolean'
+      ? serializeHeaderPlaceholder(key, value)
+      : `{{${key}}}`;
   });
 
   if (rendered.includes('{{')) {
@@ -268,6 +270,16 @@ function renderHeaderTemplate(template: string, context: ParsedYamlObject): stri
   }
 
   return rendered.trimEnd();
+}
+
+function serializeHeaderPlaceholder(key: string, value: ScalarValue): string {
+  const serialized = String(value);
+
+  if (serialized.includes('\n') || serialized.includes('\r')) {
+    throw new Error(`Header placeholder "${key}" must be single-line`);
+  }
+
+  return serialized.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
 function validateRenderedHeader(platform: Platform, kind: TemplateKind, header: string): void {

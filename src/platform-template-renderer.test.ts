@@ -91,6 +91,27 @@ describe('platform template renderer', () => {
     ).toThrow('Unresolved placeholder "{{model}}"');
   });
 
+  it('escapes placeholder values before validating rendered YAML headers', () => {
+    expect(
+      renderPlatformTemplate('claude-code', 'skill', {
+        id: 'quote-test',
+        description: 'Use the "quoted" workflow.',
+        body: '# Body',
+      })
+    ).toContain('description: "Use the \\"quoted\\" workflow."\n');
+
+    expect(() =>
+      renderPlatformTemplate('claude-code', 'subagent', {
+        id: 'bad-model',
+        description: 'Bad model',
+        body: '# Body',
+        metadata: {
+          model: 'sonnet\nopus',
+        },
+      })
+    ).toThrow('Header placeholder "model" must be single-line');
+  });
+
   it('rejects codex subagents unless they are explicitly exposed as skills', () => {
     expect(() =>
       renderPlatformTemplate('codex', 'subagent', parseCanonicalTemplateMarkdown(canonicalSubagent))
