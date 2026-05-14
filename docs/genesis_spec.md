@@ -1,3 +1,7 @@
+> Note for agents: this spec is the original first spec 
+> for this project, but some points could be different 
+> now.
+
 # Bitacora — Implementation Spec (v1)
 
 > Source of truth for the v1 implementation of the Bitacora CLI and harness.

@@ -16,6 +16,7 @@ export const OPENCODE_GENERATED_PATHS = [
   '.opencode/agents/coder.md',
   '.opencode/agents/reviewer.md',
   '.opencode/skills/bitacora-cli/SKILL.md',
+  'opencode.json',
 ] as const;
 
 export const opencodeAdapter = {

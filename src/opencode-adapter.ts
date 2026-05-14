@@ -29,6 +29,13 @@ export const OPENCODE_AGENT_FILES = ['manager.md', 'coder.md', 'reviewer.md'] as
 
 export const OPENCODE_MANAGED_AGENT_NAMES = ['manager', 'coder', 'reviewer'] as const;
 
+const OPENCODE_CONFIG_SCHEMA = 'https://opencode.ai/config.json';
+const OPENCODE_AGENT_MODES: Record<OpenCodeManagedAgentName, string> = {
+  manager: 'primary',
+  coder: 'subagent',
+  reviewer: 'subagent',
+};
+
 export class OpenCodeConfigError extends BitacoraError {
   constructor(message: string) {
     super(message, 1);
@@ -63,6 +70,14 @@ export async function syncOpenCodeAdapter(options: SyncOpenCodeAdapterOptions = 
     path.join(opencodeSkillDir, 'SKILL.md'),
     translateOpenCodeSkillMarkdown(skillContent)
   );
+
+  const existingConfig = await readOptionalUtf8File(path.join(cwd, 'opencode.json'));
+  const managedAgents = await loadManagedOpenCodeAgents(cwd);
+
+  await writeFile(
+    path.join(cwd, 'opencode.json'),
+    renderOpenCodeConfig(existingConfig, managedAgents)
+  );
 }
 
 export function translateOpenCodeAgentMarkdown(markdown: string): string {
@@ -78,14 +93,22 @@ export function renderOpenCodeConfig(
   managedAgents: OpenCodeManagedAgents
 ): string {
   const existingConfig = existingContent === undefined ? {} : parseOpenCodeConfig(existingContent);
+  const mergedConfig = mergeBitacoraOpenCodeAgents(existingConfig, managedAgents);
+  const { $schema: _ignoredSchema, ...configWithoutSchema } = mergedConfig;
+  const configWithSchema = {
+    $schema: OPENCODE_CONFIG_SCHEMA,
+    ...configWithoutSchema,
+  };
 
-  return `${JSON.stringify(mergeBitacoraOpenCodeAgents(existingConfig, managedAgents), null, 2)}\n`;
+  return `${JSON.stringify(configWithSchema, null, 2)}\n`;
 }
 
 export function mergeBitacoraOpenCodeAgents(
   existingConfig: JsonObject,
   managedAgents: OpenCodeManagedAgents
 ): JsonObject {
+  validateManagedAgentKeys(managedAgents);
+
   const existingAgentValue = existingConfig.agent;
 
   if (existingAgentValue !== undefined && !isJsonObject(existingAgentValue)) {
@@ -93,22 +116,15 @@ export function mergeBitacoraOpenCodeAgents(
   }
 
   const existingAgents = readJsonObject(existingAgentValue);
-  const managedAgentEntries = OPENCODE_MANAGED_AGENT_NAMES.reduce<OpenCodeManagedAgents>(
-    (entries, agentName) => {
-      const managedAgent = managedAgents[agentName];
+  const normalizedManagedAgents = normalizeManagedAgents(managedAgents);
 
-      if (managedAgent !== undefined) {
-        entries[agentName] = managedAgent;
-      }
-
-      return entries;
+  return {
+    ...existingConfig,
+    agent: {
+      ...existingAgents,
+      ...normalizedManagedAgents,
     },
-    {}
-  );
-
-  return mergeJsonObjects(existingConfig, {
-    agent: mergeJsonObjects(existingAgents, managedAgentEntries),
-  });
+  };
 }
 
 function parseOpenCodeConfig(content: string): JsonObject {
@@ -127,21 +143,82 @@ function parseOpenCodeConfig(content: string): JsonObject {
   return parsedValue;
 }
 
-function mergeJsonObjects(base: JsonObject, overlay: JsonObject): JsonObject {
-  const merged: JsonObject = { ...base };
+async function loadManagedOpenCodeAgents(cwd: string): Promise<OpenCodeManagedAgents> {
+  const managedAgents: OpenCodeManagedAgents = {};
+  const seenAgentNames = new Set<OpenCodeManagedAgentName>();
 
-  for (const [key, overlayValue] of Object.entries(overlay)) {
-    const baseValue = merged[key];
+  for (const fileName of OPENCODE_AGENT_FILES) {
+    const sourcePath = path.join(cwd, '.bitacora/agents', fileName);
+    const content = await readFile(sourcePath, 'utf8');
+    const template = parseCanonicalTemplateMarkdown(content);
+    const agentName = readManagedAgentName(template.id);
 
-    if (isJsonObject(baseValue) && isJsonObject(overlayValue)) {
-      merged[key] = mergeJsonObjects(baseValue, overlayValue);
+    if (seenAgentNames.has(agentName)) {
+      throw new OpenCodeConfigError(`Duplicate OpenCode managed agent id: ${agentName}`);
+    }
+
+    seenAgentNames.add(agentName);
+    managedAgents[agentName] = {
+      description: template.description,
+      mode: OPENCODE_AGENT_MODES[agentName],
+    };
+  }
+
+  return managedAgents;
+}
+
+async function readOptionalUtf8File(filePath: string): Promise<string | undefined> {
+  try {
+    return await readFile(filePath, 'utf8');
+  } catch (error) {
+    if (isNodeErrorWithCode(error, 'ENOENT')) {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
+function readManagedAgentName(id: string): OpenCodeManagedAgentName {
+  if (!isManagedAgentName(id)) {
+    throw new OpenCodeConfigError(`Unsupported OpenCode managed agent id: ${id}`);
+  }
+
+  return id;
+}
+
+function validateManagedAgentKeys(managedAgents: OpenCodeManagedAgents): void {
+  for (const agentName of Object.keys(managedAgents)) {
+    if (!isManagedAgentName(agentName)) {
+      throw new OpenCodeConfigError(`Unsupported OpenCode managed agent id: ${agentName}`);
+    }
+  }
+}
+
+function normalizeManagedAgents(managedAgents: OpenCodeManagedAgents): OpenCodeManagedAgents {
+  const normalizedManagedAgents: OpenCodeManagedAgents = {};
+
+  for (const agentName of OPENCODE_MANAGED_AGENT_NAMES) {
+    const managedAgent = managedAgents[agentName];
+
+    if (managedAgent === undefined) {
       continue;
     }
 
-    merged[key] = overlayValue;
+    normalizedManagedAgents[agentName] = normalizeManagedAgent(managedAgent);
   }
 
-  return merged;
+  return normalizedManagedAgents;
+}
+
+function normalizeManagedAgent(managedAgent: JsonObject): JsonObject {
+  const description = managedAgent.description;
+  const mode = managedAgent.mode;
+
+  return {
+    ...(typeof description === 'string' ? { description } : {}),
+    ...(typeof mode === 'string' ? { mode } : {}),
+  };
 }
 
 function readJsonObject(value: JsonValue | undefined): JsonObject {
@@ -150,4 +227,12 @@ function readJsonObject(value: JsonValue | undefined): JsonObject {
 
 function isJsonObject(value: unknown): value is JsonObject {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isManagedAgentName(value: string): value is OpenCodeManagedAgentName {
+  return OPENCODE_MANAGED_AGENT_NAMES.includes(value as OpenCodeManagedAgentName);
+}
+
+function isNodeErrorWithCode(error: unknown, code: string): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error && error.code === code;
 }

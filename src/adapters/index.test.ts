@@ -42,6 +42,9 @@ describe('syncAllAdapters', () => {
       await expect(
         readFile(path.join(workspaceDir, '.opencode/agents/manager.md'), 'utf8')
       ).resolves.toContain('description: "Manager"\n');
+      await expect(readFile(path.join(workspaceDir, 'opencode.json'), 'utf8')).resolves.toContain(
+        '"$schema": "https://opencode.ai/config.json"'
+      );
       const codexSkillPath = path.join(workspaceDir, '.agents/skills/bitacora-cli/SKILL.md');
 
       expect((await lstat(codexSkillPath)).isFile()).toBe(true);
@@ -86,6 +89,9 @@ describe('syncAllAdapters', () => {
       await expect(
         readFile(path.join(workspaceDir, '.opencode/agents/manager.md'), 'utf8')
       ).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(readFile(path.join(workspaceDir, 'opencode.json'), 'utf8')).resolves.toContain(
+        '"$schema": "https://opencode.ai/config.json"'
+      );
     } finally {
       await rm(workspaceDir, { recursive: true, force: true });
     }
