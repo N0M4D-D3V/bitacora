@@ -3,7 +3,7 @@
 Every time a session is closed, its summary must be appended here.
 Do not edit previous entries. Only append new entries at the end.
 
----
+
 
 ## 2026-05-12 - History and lessons commands
 
@@ -21,6 +21,25 @@ Do not edit previous entries. Only append new entries at the end.
   - `pnpm build` passed.
   - Reviewer approved F08 before closure; no leftover temporary artifacts remained to remove.
 - **Outcome:** Feature `history_lessons_commands` is reviewer-approved, revalidated during closure, and marked `done`.
+
+---
+
+## 2026-05-19 - Handle user conflicts in Bitacora-owned OpenCode agent names
+
+- **Agent:** `developer`
+- **Feature:** `F19 opencode_json_conflict_handling`
+- **Plan:** Inspect the existing OpenCode config merge path and define deterministic collision behavior for `agent.manager`, `agent.coder`, and `agent.reviewer`; add failing tests first for conflict diagnostics in sync/init flows and for non-conflicting Bitacora-managed rewrites; implement the minimum conflict detection in the OpenCode adapter, then rerun tests, typecheck, lint, and build.
+- **Changes:**
+  - Added failing OpenCode adapter and init CLI tests first for managed-name collisions, then confirmed they failed before implementation.
+  - Implemented deterministic conflict detection so pre-existing `agent.manager`, `agent.coder`, and `agent.reviewer` entries with user-managed keys now fail instead of being overwritten.
+  - Added reviewer follow-up coverage for pre-existing `manager`/`coder`/`reviewer` entries that only contain `description` and `mode`.
+  - Tightened conflict handling so matching key shape alone no longer permits overwrite and Bitacora now fails on every pre-existing managed agent name unless ownership is proven.
+  - Added a durable OpenCode ownership proof under `opencode.json#_bitacora.managedOpenCodeAgents` so Bitacora can safely re-sync its own generated agent entries without treating user-owned collisions as managed.
+- **Verification:**
+  - In-session validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Re-review validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Verified feature 19 was the only active `in_progress` backlog item before closure.
+- **Outcome:** Feature `opencode_json_conflict_handling` is reviewer-approved, archived from `progress/current.md`, and marked `done`.
 
 ---
 
@@ -394,3 +413,20 @@ Do not edit previous entries. Only append new entries at the end.
 - **Outcome:** Feature `doctor_opencode_json_drift` is reviewer-approved, archived from `progress/current.md`, and marked `done`.
 
 ---
+
+## 2026-05-19 - Handle user conflicts in Bitacora-owned OpenCode agent names
+
+- **Agent:** `developer`
+- **Feature:** `F19 opencode_json_conflict_handling`
+- **Plan:** Inspect the existing OpenCode config merge path and define deterministic collision behavior for `agent.manager`, `agent.coder`, and `agent.reviewer`; add failing tests first for conflict diagnostics in sync/init flows and for non-conflicting Bitacora-managed rewrites; implement the minimum conflict detection in the OpenCode adapter, then rerun tests, typecheck, lint, and build.
+- **Changes:**
+  - Added failing OpenCode adapter and init CLI tests first for managed-name collisions, then confirmed they failed before implementation.
+  - Implemented deterministic conflict detection so pre-existing `agent.manager`, `agent.coder`, and `agent.reviewer` entries with user-managed keys now fail instead of being overwritten.
+  - Added reviewer follow-up coverage for pre-existing `manager`/`coder`/`reviewer` entries that only contain `description` and `mode`.
+  - Tightened conflict handling so matching key shape alone no longer permits overwrite and Bitacora now fails on every pre-existing managed agent name unless ownership is proven.
+  - Added a durable OpenCode ownership proof under `opencode.json#_bitacora.managedOpenCodeAgents` so Bitacora can safely re-sync its own generated agent entries without treating user-owned collisions as managed.
+- **Verification:**
+  - In-session validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Re-review validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Verified feature 19 was the only active `in_progress` backlog item before closure.
+- **Outcome:** Feature `opencode_json_conflict_handling` is reviewer-approved, archived from `progress/current.md`, and marked `done`.

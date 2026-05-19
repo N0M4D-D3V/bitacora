@@ -30,6 +30,11 @@ describe('renderOpenCodeConfig', () => {
               mode: 'primary',
             },
           },
+          _bitacora: {
+            managedOpenCodeAgents: {
+              manager: true,
+            },
+          },
         },
         null,
         2
@@ -37,7 +42,7 @@ describe('renderOpenCodeConfig', () => {
     );
   });
 
-  it('deep merges Bitacora-owned agent entries without clobbering unrelated config', () => {
+  it('deep merges new Bitacora-owned agent entries without clobbering unrelated config', () => {
     const rendered = renderOpenCodeConfig(
       JSON.stringify(
         {
@@ -50,12 +55,6 @@ describe('renderOpenCodeConfig', () => {
           agent: {
             helper: {
               description: 'User-owned helper.',
-            },
-            manager: {
-              color: 'blue',
-              permission: {
-                read: 'allow',
-              },
             },
           },
         },
@@ -76,6 +75,12 @@ describe('renderOpenCodeConfig', () => {
 
     expect(JSON.parse(rendered)).toEqual({
       $schema: 'https://opencode.ai/config.json',
+      _bitacora: {
+        managedOpenCodeAgents: {
+          manager: true,
+          reviewer: true,
+        },
+      },
       theme: 'midnight',
       provider: {
         anthropic: {
@@ -96,6 +101,60 @@ describe('renderOpenCodeConfig', () => {
         },
       },
     });
+  });
+
+  it('rejects user-managed collisions for Bitacora-owned agent names', () => {
+    expect(() =>
+      renderOpenCodeConfig(
+        JSON.stringify({
+          agent: {
+            manager: {
+              description: 'User manager.',
+              mode: 'primary',
+              color: 'blue',
+              permission: {
+                read: 'allow',
+              },
+            },
+          },
+        }),
+        {
+          manager: {
+            description: 'Bitacora manager.',
+            mode: 'primary',
+          },
+        }
+      )
+    ).toThrowError(
+      new OpenCodeConfigError(
+        'OpenCode agent name conflict at opencode.json#agent.manager: existing entry contains user-managed keys: color, permission'
+      )
+    );
+  });
+
+  it('rejects pre-existing managed-name collisions even when the entry only contains description and mode', () => {
+    expect(() =>
+      renderOpenCodeConfig(
+        JSON.stringify({
+          agent: {
+            manager: {
+              description: 'User manager.',
+              mode: 'primary',
+            },
+          },
+        }),
+        {
+          manager: {
+            description: 'Bitacora manager.',
+            mode: 'primary',
+          },
+        }
+      )
+    ).toThrowError(
+      new OpenCodeConfigError(
+        'OpenCode agent name conflict at opencode.json#agent.manager: existing entry is user-managed and Bitacora cannot prove ownership'
+      )
+    );
   });
 
   it('rejects invalid strict JSON input', () => {
@@ -134,6 +193,11 @@ describe('renderOpenCodeConfig', () => {
 
     expect(JSON.parse(rendered)).toEqual({
       $schema: 'https://opencode.ai/config.json',
+      _bitacora: {
+        managedOpenCodeAgents: {
+          manager: true,
+        },
+      },
       agent: {
         manager: {
           description: 'Bitacora manager.',
@@ -168,6 +232,44 @@ describe('mergeBitacoraOpenCodeAgents', () => {
         overlay
       )
     ).toThrowError(new OpenCodeConfigError('Unsupported OpenCode managed agent id: helper'));
+  });
+
+  it('allows overwrite when a Bitacora ownership proof exists for the managed agent name', () => {
+    expect(
+      mergeBitacoraOpenCodeAgents(
+        {
+          _bitacora: {
+            managedOpenCodeAgents: {
+              manager: true,
+            },
+          },
+          agent: {
+            manager: {
+              description: 'Previous Bitacora manager.',
+              mode: 'primary',
+            },
+          },
+        },
+        {
+          manager: {
+            description: 'Updated Bitacora manager.',
+            mode: 'primary',
+          },
+        }
+      )
+    ).toEqual({
+      _bitacora: {
+        managedOpenCodeAgents: {
+          manager: true,
+        },
+      },
+      agent: {
+        manager: {
+          description: 'Updated Bitacora manager.',
+          mode: 'primary',
+        },
+      },
+    });
   });
 });
 
@@ -256,6 +358,13 @@ describe('syncOpenCodeAdapter', () => {
       expect(skillOutput).toContain('description: "Skill"\n');
       expect(configOutput).toEqual({
         $schema: 'https://opencode.ai/config.json',
+        _bitacora: {
+          managedOpenCodeAgents: {
+            manager: true,
+            coder: true,
+            reviewer: true,
+          },
+        },
         agent: {
           manager: {
             description: 'Orchestrates Bitacora sessions and delivery flow.',
@@ -276,8 +385,113 @@ describe('syncOpenCodeAdapter', () => {
     }
   });
 
-  it('preserves user-owned opencode.json fields while replacing Bitacora-managed agent entries', async () => {
-    const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-opencode-merge-'));
+  for (const agentName of ['manager', 'coder', 'reviewer'] as const) {
+    it(`rejects existing user-managed ${agentName} OpenCode entries instead of overwriting them`, async () => {
+      const workspaceDir = await mkdtemp(
+        path.join(tmpdir(), `bitacora-opencode-conflict-${agentName}-`)
+      );
+
+      try {
+        await mkdir(path.join(workspaceDir, '.bitacora/agents'), { recursive: true });
+        await mkdir(path.join(workspaceDir, '.bitacora/skills/bitacora-cli'), { recursive: true });
+
+        await writeFile(
+          path.join(workspaceDir, '.bitacora/agents/manager.md'),
+          ['---', 'id: manager', 'description: Updated manager', '---', '', 'manager'].join('\n')
+        );
+        await writeFile(
+          path.join(workspaceDir, '.bitacora/agents/coder.md'),
+          ['---', 'id: coder', 'description: Updated coder', '---', '', 'coder'].join('\n')
+        );
+        await writeFile(
+          path.join(workspaceDir, '.bitacora/agents/reviewer.md'),
+          ['---', 'id: reviewer', 'description: Updated reviewer', '---', '', 'reviewer'].join('\n')
+        );
+        await writeFile(
+          path.join(workspaceDir, '.bitacora/skills/bitacora-cli/SKILL.md'),
+          ['---', 'id: bitacora-cli', 'description: Skill', '---', '', '# Bitacora CLI'].join('\n')
+        );
+        await writeFile(
+          path.join(workspaceDir, 'opencode.json'),
+          JSON.stringify(
+            {
+              agent: {
+                [agentName]: {
+                  description: `User-managed ${agentName}`,
+                  mode: agentName === 'manager' ? 'primary' : 'subagent',
+                  color: 'blue',
+                },
+              },
+            },
+            null,
+            2
+          )
+        );
+
+        await expect(syncOpenCodeAdapter({ cwd: workspaceDir })).rejects.toThrowError(
+          new OpenCodeConfigError(
+            `OpenCode agent name conflict at opencode.json#agent.${agentName}: existing entry contains user-managed keys: color`
+          )
+        );
+      } finally {
+        await rm(workspaceDir, { recursive: true, force: true });
+      }
+    });
+
+    it(`rejects existing ${agentName} entries even when they only contain description and mode`, async () => {
+      const workspaceDir = await mkdtemp(
+        path.join(tmpdir(), `bitacora-opencode-shape-conflict-${agentName}-`)
+      );
+
+      try {
+        await mkdir(path.join(workspaceDir, '.bitacora/agents'), { recursive: true });
+        await mkdir(path.join(workspaceDir, '.bitacora/skills/bitacora-cli'), { recursive: true });
+
+        await writeFile(
+          path.join(workspaceDir, '.bitacora/agents/manager.md'),
+          ['---', 'id: manager', 'description: Updated manager', '---', '', 'manager'].join('\n')
+        );
+        await writeFile(
+          path.join(workspaceDir, '.bitacora/agents/coder.md'),
+          ['---', 'id: coder', 'description: Updated coder', '---', '', 'coder'].join('\n')
+        );
+        await writeFile(
+          path.join(workspaceDir, '.bitacora/agents/reviewer.md'),
+          ['---', 'id: reviewer', 'description: Updated reviewer', '---', '', 'reviewer'].join('\n')
+        );
+        await writeFile(
+          path.join(workspaceDir, '.bitacora/skills/bitacora-cli/SKILL.md'),
+          ['---', 'id: bitacora-cli', 'description: Skill', '---', '', '# Bitacora CLI'].join('\n')
+        );
+        await writeFile(
+          path.join(workspaceDir, 'opencode.json'),
+          JSON.stringify(
+            {
+              agent: {
+                [agentName]: {
+                  description: `User-managed ${agentName}`,
+                  mode: agentName === 'manager' ? 'primary' : 'subagent',
+                },
+              },
+            },
+            null,
+            2
+          )
+        );
+
+        await expect(syncOpenCodeAdapter({ cwd: workspaceDir })).rejects.toThrowError(
+          new OpenCodeConfigError(
+            `OpenCode agent name conflict at opencode.json#agent.${agentName}: existing entry is user-managed and Bitacora cannot prove ownership`
+          )
+        );
+      } finally {
+        await rm(workspaceDir, { recursive: true, force: true });
+      }
+    });
+  }
+
+  it('preserves Bitacora-owned managed agent entries when ownership proof exists', async () => {
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-opencode-owned-overwrite-'));
 
     try {
       await mkdir(path.join(workspaceDir, '.bitacora/agents'), { recursive: true });
@@ -304,17 +518,28 @@ describe('syncOpenCodeAdapter', () => {
         JSON.stringify(
           {
             theme: 'midnight',
+            _bitacora: {
+              managedOpenCodeAgents: {
+                manager: true,
+                coder: true,
+                reviewer: true,
+              },
+            },
             agent: {
               helper: {
                 description: 'User-owned helper.',
               },
               manager: {
-                color: 'blue',
-                model: 'legacy-model',
-                permission: {
-                  read: 'allow',
-                },
-                temperature: 0.9,
+                description: 'Previous manager',
+                mode: 'primary',
+              },
+              coder: {
+                description: 'Previous coder',
+                mode: 'subagent',
+              },
+              reviewer: {
+                description: 'Previous reviewer',
+                mode: 'subagent',
               },
             },
           },
@@ -332,6 +557,13 @@ describe('syncOpenCodeAdapter', () => {
       expect(mergedConfig).toEqual({
         $schema: 'https://opencode.ai/config.json',
         theme: 'midnight',
+        _bitacora: {
+          managedOpenCodeAgents: {
+            manager: true,
+            coder: true,
+            reviewer: true,
+          },
+        },
         agent: {
           helper: {
             description: 'User-owned helper.',

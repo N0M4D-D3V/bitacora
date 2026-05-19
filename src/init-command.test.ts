@@ -237,6 +237,46 @@ describe('bitacora init', () => {
     }
   });
 
+  it('fails with a clear diagnostic when opencode.json already uses a Bitacora-owned agent name', async () => {
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-init-opencode-conflict-'));
+
+    try {
+      await execFileAsync('npm', ['run', 'build'], {
+        cwd: path.resolve(__dirname, '..'),
+      });
+
+      await writeFile(
+        path.join(workspaceDir, 'opencode.json'),
+        JSON.stringify(
+          {
+            agent: {
+              manager: {
+                description: 'User-managed manager',
+                mode: 'primary',
+                color: 'blue',
+              },
+            },
+          },
+          null,
+          2
+        )
+      );
+
+      await expect(
+        execFileAsync('node', [path.resolve(__dirname, '../dist/index.js'), 'init'], {
+          cwd: workspaceDir,
+        })
+      ).rejects.toMatchObject({
+        code: 1,
+        stderr: expect.stringContaining(
+          'OpenCode agent name conflict at opencode.json#agent.manager: existing entry contains user-managed keys: color'
+        ),
+      });
+    } finally {
+      await rm(workspaceDir, { recursive: true, force: true });
+    }
+  });
+
   it('regenerates .bitacora with force and preserves user runtime folders', async () => {
     const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-init-force-'));
 

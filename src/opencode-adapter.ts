@@ -30,6 +30,9 @@ export const OPENCODE_AGENT_FILES = ['manager.md', 'coder.md', 'reviewer.md'] as
 export const OPENCODE_MANAGED_AGENT_NAMES = ['manager', 'coder', 'reviewer'] as const;
 
 const OPENCODE_CONFIG_SCHEMA = 'https://opencode.ai/config.json';
+const OPENCODE_MANAGED_AGENT_RUNTIME_KEYS = ['description', 'mode'] as const;
+const BITACORA_METADATA_KEY = '_bitacora';
+const OPENCODE_MANAGED_AGENTS_METADATA_KEY = 'managedOpenCodeAgents';
 const OPENCODE_AGENT_MODES: Record<OpenCodeManagedAgentName, string> = {
   manager: 'primary',
   coder: 'subagent',
@@ -117,6 +120,9 @@ export function mergeBitacoraOpenCodeAgents(
 
   const existingAgents = readJsonObject(existingAgentValue);
   const normalizedManagedAgents = normalizeManagedAgents(managedAgents);
+  const ownershipProof = readBitacoraManagedAgentsOwnershipProof(existingConfig);
+
+  assertNoUserManagedAgentConflicts(existingAgents, normalizedManagedAgents, ownershipProof);
 
   return {
     ...existingConfig,
@@ -124,6 +130,7 @@ export function mergeBitacoraOpenCodeAgents(
       ...existingAgents,
       ...normalizedManagedAgents,
     },
+    [BITACORA_METADATA_KEY]: mergeBitacoraMetadata(existingConfig, normalizedManagedAgents),
   };
 }
 
@@ -221,6 +228,86 @@ function normalizeManagedAgent(managedAgent: JsonObject): JsonObject {
   };
 }
 
+function assertNoUserManagedAgentConflicts(
+  existingAgents: JsonObject,
+  normalizedManagedAgents: OpenCodeManagedAgents,
+  ownershipProof: ReadonlySet<OpenCodeManagedAgentName>
+): void {
+  for (const agentName of OPENCODE_MANAGED_AGENT_NAMES) {
+    if (normalizedManagedAgents[agentName] === undefined) {
+      continue;
+    }
+
+    const existingAgent = existingAgents[agentName];
+
+    if (existingAgent === undefined) {
+      continue;
+    }
+
+    if (ownershipProof.has(agentName)) {
+      continue;
+    }
+
+    if (!isJsonObject(existingAgent)) {
+      throw new OpenCodeConfigError(
+        `OpenCode agent name conflict at opencode.json#agent.${agentName}: existing entry must be a JSON object`
+      );
+    }
+
+    const userManagedKeys = Object.keys(existingAgent)
+      .filter((key) => !isOpenCodeManagedAgentRuntimeKey(key))
+      .sort();
+
+    if (userManagedKeys.length > 0) {
+      throw new OpenCodeConfigError(
+        `OpenCode agent name conflict at opencode.json#agent.${agentName}: existing entry contains user-managed keys: ${userManagedKeys.join(', ')}`
+      );
+    }
+
+    throw new OpenCodeConfigError(
+      `OpenCode agent name conflict at opencode.json#agent.${agentName}: existing entry is user-managed and Bitacora cannot prove ownership`
+    );
+  }
+}
+
+function mergeBitacoraMetadata(
+  existingConfig: JsonObject,
+  normalizedManagedAgents: OpenCodeManagedAgents
+): JsonObject {
+  const existingMetadata = readJsonObject(existingConfig[BITACORA_METADATA_KEY]);
+  const existingManagedAgents = readJsonObject(
+    existingMetadata[OPENCODE_MANAGED_AGENTS_METADATA_KEY]
+  );
+  const managedAgentsMetadata = { ...existingManagedAgents };
+
+  for (const agentName of OPENCODE_MANAGED_AGENT_NAMES) {
+    if (normalizedManagedAgents[agentName] !== undefined) {
+      managedAgentsMetadata[agentName] = true;
+    }
+  }
+
+  return {
+    ...existingMetadata,
+    [OPENCODE_MANAGED_AGENTS_METADATA_KEY]: managedAgentsMetadata,
+  };
+}
+
+function readBitacoraManagedAgentsOwnershipProof(
+  existingConfig: JsonObject
+): ReadonlySet<OpenCodeManagedAgentName> {
+  const metadata = readJsonObject(existingConfig[BITACORA_METADATA_KEY]);
+  const managedAgents = readJsonObject(metadata[OPENCODE_MANAGED_AGENTS_METADATA_KEY]);
+  const ownershipProof = new Set<OpenCodeManagedAgentName>();
+
+  for (const agentName of OPENCODE_MANAGED_AGENT_NAMES) {
+    if (managedAgents[agentName] === true) {
+      ownershipProof.add(agentName);
+    }
+  }
+
+  return ownershipProof;
+}
+
 function readJsonObject(value: JsonValue | undefined): JsonObject {
   return isJsonObject(value) ? value : {};
 }
@@ -231,6 +318,14 @@ function isJsonObject(value: unknown): value is JsonObject {
 
 function isManagedAgentName(value: string): value is OpenCodeManagedAgentName {
   return OPENCODE_MANAGED_AGENT_NAMES.includes(value as OpenCodeManagedAgentName);
+}
+
+function isOpenCodeManagedAgentRuntimeKey(
+  value: string
+): value is (typeof OPENCODE_MANAGED_AGENT_RUNTIME_KEYS)[number] {
+  return OPENCODE_MANAGED_AGENT_RUNTIME_KEYS.includes(
+    value as (typeof OPENCODE_MANAGED_AGENT_RUNTIME_KEYS)[number]
+  );
 }
 
 function isNodeErrorWithCode(error: unknown, code: string): error is NodeJS.ErrnoException {
