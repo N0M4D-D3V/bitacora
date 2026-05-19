@@ -328,3 +328,52 @@ Do not edit previous entries. Only append new entries at the end.
 - **Outcome:** Feature `opencode_json_contract` was archived from the active session, marked `done`, and handed off to the next feature state.
 
 ---
+
+## 2026-05-14 - Reduce OpenCode markdown agents to minimal headers
+
+- **Agent:** `developer`
+- **Feature:** `F16 opencode_markdown_minimal_headers`
+- **Plan:** Read the F16 spec and inspect the existing OpenCode header rendering plus nearby adapter snapshot coverage, add failing tests first for minimal deterministic OpenCode markdown agent headers, then implement only the required OpenCode header-minimization changes and revalidate before review.
+- **Changes:**
+  - Reviewed feature 16 scope against the existing OpenCode renderer, header templates, and adapter snapshot coverage to keep the work isolated to `.opencode/agents/*.md` generation.
+  - Added failing renderer and adapter assertions for OpenCode subagent headers, then removed duplicated `description` and `permission` metadata from the OpenCode subagent header template while tightening the renderer contract to `mode` only.
+  - Updated the broader adapter, init, and CLI expectations to reflect the new minimal OpenCode markdown header contract without expanding into canonical cleanup, doctor drift, or conflict handling.
+- **Verification:**
+  - In-session validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Reviewer approved F16 and confirmed `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build` passed during review.
+- **Outcome:** Feature `opencode_markdown_minimal_headers` is reviewer-approved, archived from `progress/current.md`, and marked `done`.
+
+---
+
+## 2026-05-14 - Generate OpenCode agent runtime config in opencode.json
+
+- **Agent:** `developer`
+- **Feature:** `F15 opencode_json_generation`
+- **Plan:** Read the F15 runtime-config spec and existing OpenCode adapter helpers, add failing tests first for generated or merged Bitacora-owned runtime entries in `opencode.json`, then implement the minimal generation flow and revalidate after review follow-up fixes.
+- **Changes:**
+  - Confirmed F15 scope stays limited to OpenCode JSON generation and documented the in-scope merge and ownership edge cases in the active session log.
+  - Added focused tests first for `opencode.json` generation, merge preservation, managed-agent overwrite normalization, forced `$schema` normalization, canonical managed-agent id validation, and generated-path reporting.
+  - Implemented the OpenCode adapter generation flow so Bitacora-managed `agent.manager`, `agent.coder`, and `agent.reviewer` entries are rendered from canonical descriptions plus adapter-owned modes, while preserving unrelated root keys and non-Bitacora agents.
+- **Verification:**
+  - In-session validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Re-review validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Reviewer approved F15 after the normalization and generated-path follow-up.
+- **Outcome:** Feature `opencode_json_generation` was approved, archived from `progress/current.md`, and marked `done` before handing off the next pending feature.
+
+---
+
+## 2026-05-19 - Remove OpenCode runtime-only metadata from canonical templates
+
+- **Agent:** `developer`
+- **Feature:** `F17 canonical_template_opencode_cleanup`
+- **Plan:** Inspect canonical template parsing and bundled agent templates, add failing tests first for portable-only canonical metadata, then implement the minimal cleanup and validate before reviewer handoff.
+- **Changes:**
+  - Confirmed feature 17 remained isolated to canonical template cleanup and OpenCode header determinism, without expanding into doctor drift or conflict handling.
+  - Added regression coverage in `src/platform-template-renderer.test.ts` so canonical templates reject OpenCode-only runtime metadata and bundled agent templates stay free of runtime-only fields.
+  - Removed canonical `permissions` parsing support in `src/platform-template-renderer.ts` and cleaned `templates/agents/manager.md` plus `templates/agents/reviewer.md` to keep only portable frontmatter metadata.
+- **Verification:**
+  - In-session validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Reviewer approved F17 and confirmed the same validation set during review.
+- **Outcome:** Feature `canonical_template_opencode_cleanup` is reviewer-approved, archived from `progress/current.md`, and marked `done`.
+
+---

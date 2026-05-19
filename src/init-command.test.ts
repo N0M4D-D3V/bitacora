@@ -162,25 +162,19 @@ describe('bitacora init', () => {
         { tool: 'Edit', pattern: '.bitacora/memory/**' },
         { tool: 'Write', pattern: '.bitacora/memory/**' },
       ]);
-      expect(opencodeManager).toContain(
-        'description: "Orchestrates Bitacora sessions and delivery flow."'
-      );
-      expect(opencodeManager).toContain('mode: subagent\n');
-      expect(opencodeManager).toContain('permission:\n  edit: "deny"\n');
+      expect(opencodeManager).toContain('---\nmode: subagent\n---\n');
+      expect(opencodeManager).not.toContain('description:');
+      expect(opencodeManager).not.toContain('permission:');
       expect(opencodeManager).toContain(
         'Owns session lifecycle, status transitions, and history archival.'
       );
-      expect(opencodeCoder).toContain(
-        'description: "Implements scoped changes and records delivery progress."'
-      );
-      expect(opencodeCoder).toContain('mode: subagent\n');
+      expect(opencodeCoder).toContain('---\nmode: subagent\n---\n');
+      expect(opencodeCoder).not.toContain('description:');
       expect(opencodeCoder).not.toContain('permission:');
       expect(opencodeCoder).toContain('Never modifies session status or closes sessions.');
-      expect(opencodeReviewer).toContain(
-        'description: "Verifies completed work against Bitacora quality gates."'
-      );
-      expect(opencodeReviewer).toContain('mode: subagent\n');
-      expect(opencodeReviewer).toContain('permission:\n  edit: "deny"\n');
+      expect(opencodeReviewer).toContain('---\nmode: subagent\n---\n');
+      expect(opencodeReviewer).not.toContain('description:');
+      expect(opencodeReviewer).not.toContain('permission:');
       expect(opencodeReviewer).toContain(
         'Never edits implementation code while acting as reviewer.'
       );

@@ -11,8 +11,6 @@ export type Platform = 'codex' | 'claude-code' | 'opencode';
 
 export type TemplateKind = 'skill' | 'agent' | 'subagent';
 
-export type PermissionValue = 'allow' | 'ask' | 'deny';
-
 export type CanonicalTemplate = {
   id: string;
   description: string;
@@ -20,10 +18,6 @@ export type CanonicalTemplate = {
   metadata?: {
     model?: string;
     tools?: string[];
-    permissions?: {
-      edit?: PermissionValue;
-      bash?: PermissionValue;
-    };
     codex?: {
       exposeAsSkill?: boolean;
     };
@@ -35,19 +29,10 @@ type ParsedYamlValue = ScalarValue | ScalarValue[] | ParsedYamlObject;
 type ParsedYamlObject = {
   [key: string]: ParsedYamlValue;
 };
-type CanonicalPermissions = NonNullable<CanonicalTemplate['metadata']>['permissions'];
 type CanonicalCodex = NonNullable<CanonicalTemplate['metadata']>['codex'];
 
 const ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const PERMISSION_VALUES = new Set(['allow', 'ask', 'deny']);
-const SUPPORTED_CANONICAL_FIELDS = new Set([
-  'id',
-  'description',
-  'tools',
-  'model',
-  'permissions',
-  'codex',
-]);
+const SUPPORTED_CANONICAL_FIELDS = new Set(['id', 'description', 'tools', 'model', 'codex']);
 const SUPPORTED_RENDERED_FIELDS: Record<Platform, Record<TemplateKind, Set<string>>> = {
   codex: {
     skill: new Set(['name', 'description']),
@@ -61,8 +46,8 @@ const SUPPORTED_RENDERED_FIELDS: Record<Platform, Record<TemplateKind, Set<strin
   },
   opencode: {
     skill: new Set(['name', 'description']),
-    agent: new Set(['description', 'mode', 'permission']),
-    subagent: new Set(['description', 'mode', 'permission']),
+    agent: new Set(['mode']),
+    subagent: new Set(['mode']),
   },
 };
 
@@ -162,7 +147,6 @@ function canonicalTemplateFromFrontmatter(
   const description = readRequiredString(frontmatter, 'description');
   const tools = readOptionalStringArray(frontmatter.tools, 'tools');
   const model = readOptionalString(frontmatter.model, 'model');
-  const permissions = readOptionalPermissions(frontmatter.permissions);
   const codex = readOptionalCodex(frontmatter.codex);
   const metadata: CanonicalTemplate['metadata'] = {};
 
@@ -172,10 +156,6 @@ function canonicalTemplateFromFrontmatter(
 
   if (model !== undefined) {
     metadata.model = model;
-  }
-
-  if (permissions !== undefined) {
-    metadata.permissions = permissions;
   }
 
   if (codex !== undefined) {
@@ -230,10 +210,6 @@ function buildRenderContext(
     if (template.metadata?.model !== undefined) {
       context.model = template.metadata.model;
     }
-  }
-
-  if (platform === 'opencode' && kind !== 'skill' && template.metadata?.permissions) {
-    context.permission = template.metadata.permissions;
   }
 
   return context;
@@ -432,32 +408,6 @@ function readOptionalStringArray(
   }
 
   return value;
-}
-
-function readOptionalPermissions(value: ParsedYamlValue | undefined): CanonicalPermissions {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (!isParsedYamlObject(value)) {
-    throw new Error('Canonical permissions must be an object');
-  }
-
-  const permissions: { edit?: PermissionValue; bash?: PermissionValue } = {};
-
-  for (const [key, permission] of Object.entries(value)) {
-    if (key !== 'edit' && key !== 'bash') {
-      throw new Error(`Unsupported canonical permissions field "${key}"`);
-    }
-
-    if (typeof permission !== 'string' || !PERMISSION_VALUES.has(permission)) {
-      throw new Error(`Invalid canonical permissions.${key}: ${String(permission)}`);
-    }
-
-    permissions[key] = permission as PermissionValue;
-  }
-
-  return Object.keys(permissions).length > 0 ? permissions : undefined;
 }
 
 function readOptionalCodex(value: ParsedYamlValue | undefined): CanonicalCodex {

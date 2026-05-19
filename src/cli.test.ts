@@ -117,9 +117,11 @@ describe('runCli', () => {
       expect(await readFile(claudeManagerPath, 'utf8')).toContain(
         `${updatedDescription.replace('description: ', 'description: "')}"\n`
       );
+      expect(await readFile(opencodeManagerPath, 'utf8')).toContain('---\nmode: subagent\n---\n');
       expect(await readFile(opencodeManagerPath, 'utf8')).toContain(
-        `${updatedDescription.replace('description: ', 'description: "')}"\n`
+        'Purpose: coordinate the active feature from start to finish without doing implementation work directly.'
       );
+      expect(await readFile(opencodeManagerPath, 'utf8')).not.toContain('stale opencode output');
       expect((await lstat(claudeSkillPath)).isFile()).toBe(true);
       expect((await lstat(codexSkillPath)).isFile()).toBe(true);
       expect((await lstat(opencodeSkillPath)).isFile()).toBe(true);

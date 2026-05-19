@@ -1,13 +1,3 @@
 ---
-description: "{{description}}"
 mode: subagent
-{{#if permission}}
-permission:
-{{#if permission.edit}}
-  edit: "{{permission.edit}}"
-{{/if}}
-{{#if permission.bash}}
-  bash: "{{permission.bash}}"
-{{/if}}
-{{/if}}
 ---

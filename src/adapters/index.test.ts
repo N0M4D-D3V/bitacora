@@ -41,7 +41,7 @@ describe('syncAllAdapters', () => {
       ).resolves.toContain('description: "Manager"\n');
       await expect(
         readFile(path.join(workspaceDir, '.opencode/agents/manager.md'), 'utf8')
-      ).resolves.toContain('description: "Manager"\n');
+      ).resolves.toContain('---\nmode: subagent\n---\n\nmanager');
       await expect(readFile(path.join(workspaceDir, 'opencode.json'), 'utf8')).resolves.toContain(
         '"$schema": "https://opencode.ai/config.json"'
       );
@@ -83,7 +83,7 @@ describe('syncAllAdapters', () => {
       await opencodeAdapter.generate({ cwd: workspaceDir });
       await expect(
         readFile(path.join(workspaceDir, '.opencode/agents/manager.md'), 'utf8')
-      ).resolves.toContain('description: "Manager"\n');
+      ).resolves.toContain('---\nmode: subagent\n---\n\nmanager');
 
       await opencodeAdapter.clean({ cwd: workspaceDir });
       await expect(

@@ -201,7 +201,7 @@
       "spec_refs": ["docs/features/014-opencode-json-runtime-config.md"],
       "spec_file": "docs/features/014-opencode-json-runtime-config.md",
       "acceptance": ["AC-OPENCFG-01", "AC-OPENCFG-02", "AC-OPENCFG-03", "AC-OPENCFG-04"],
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": 16,
@@ -212,7 +212,7 @@
       "spec_refs": ["docs/features/014-opencode-json-runtime-config.md"],
       "spec_file": "docs/features/014-opencode-json-runtime-config.md",
       "acceptance": ["AC-OPENCFG-05"],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 17,
@@ -223,7 +223,7 @@
       "spec_refs": ["docs/features/014-opencode-json-runtime-config.md"],
       "spec_file": "docs/features/014-opencode-json-runtime-config.md",
       "acceptance": ["AC-OPENCFG-04", "AC-OPENCFG-07"],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 18,

@@ -7,8 +7,6 @@ tools:
   - Grep
   - Bash
 model: sonnet
-permissions:
-  edit: deny
 ---
 
 Purpose: review completed work for correctness, scope control, and verification completeness.

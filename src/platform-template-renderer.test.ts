@@ -32,8 +32,6 @@ const canonicalSubagent = [
   '  - Read',
   '  - Grep',
   'model: sonnet',
-  'permissions:',
-  '  edit: deny',
   '---',
   '',
   '# Verifier',
@@ -76,12 +74,34 @@ describe('platform template renderer', () => {
     ).toThrow('Canonical template description must not be multiline');
   });
 
-  it('rejects unsupported fields and unresolved placeholders', () => {
+  it('rejects OpenCode-only runtime metadata in canonical frontmatter', () => {
     expect(() =>
       parseCanonicalTemplateMarkdown(
         ['---', 'id: coder', 'description: Coder', 'temperature: low', '---', '', 'Body'].join('\n')
       )
     ).toThrow('Unsupported canonical field "temperature"');
+    expect(() =>
+      parseCanonicalTemplateMarkdown(
+        ['---', 'id: coder', 'description: Coder', 'mode: subagent', '---', '', 'Body'].join('\n')
+      )
+    ).toThrow('Unsupported canonical field "mode"');
+    expect(() =>
+      parseCanonicalTemplateMarkdown(
+        [
+          '---',
+          'id: coder',
+          'description: Coder',
+          'permissions:',
+          '  edit: deny',
+          '---',
+          '',
+          'Body',
+        ].join('\n')
+      )
+    ).toThrow('Unsupported canonical field "permissions"');
+  });
+
+  it('rejects unresolved placeholders', () => {
     expect(() =>
       renderPlatformTemplate('codex', 'skill', {
         id: 'coder',
@@ -155,6 +175,18 @@ describe('platform template renderer', () => {
     );
   });
 
+  it('renders OpenCode subagents with only the minimal agent header metadata', () => {
+    const rendered = renderPlatformTemplate(
+      'opencode',
+      'subagent',
+      parseCanonicalTemplateMarkdown(canonicalSubagent)
+    );
+
+    expect(rendered).toContain('---\nmode: subagent\n---\n\n# Verifier');
+    expect(rendered).not.toContain('description:');
+    expect(rendered).not.toContain('permission:');
+  });
+
   it('parses bundled canonical agent templates with the portable frontmatter contract', async () => {
     const templateDir = path.resolve(__dirname, '../templates/agents');
     const templateNames = ['coder', 'manager', 'reviewer'];
@@ -168,5 +200,22 @@ describe('platform template renderer', () => {
         })
       )
     ).resolves.toHaveLength(3);
+  });
+
+  it('keeps bundled canonical agent templates free of OpenCode-only runtime metadata', async () => {
+    const templateDir = path.resolve(__dirname, '../templates/agents');
+    const templateNames = ['coder', 'manager', 'reviewer'];
+
+    await Promise.all(
+      templateNames.map(async (templateName) => {
+        const markdown = await readFile(path.join(templateDir, `${templateName}.md`), 'utf8');
+
+        expect(markdown).not.toContain('\nmode:');
+        expect(markdown).not.toContain('\ntemperature:');
+        expect(markdown).not.toContain('\ncolor:');
+        expect(markdown).not.toContain('\npermission:');
+        expect(markdown).not.toContain('\npermissions:');
+      })
+    );
   });
 });
