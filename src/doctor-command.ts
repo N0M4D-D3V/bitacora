@@ -20,7 +20,10 @@ import {
   parseLessonsMemory,
 } from './memory-storage.js';
 import {
+  loadManagedOpenCodeAgents,
   OPENCODE_AGENT_FILES,
+  OPENCODE_MANAGED_AGENT_NAMES,
+  parseOpenCodeConfig,
   translateOpenCodeAgentMarkdown,
   translateOpenCodeSkillMarkdown,
 } from './opencode-adapter.js';
@@ -268,6 +271,8 @@ async function checkAdapterDrift(cwd: string): Promise<CheckResult> {
     );
   }
 
+  await collectOpenCodeConfigDrift(cwd, issues);
+
   return {
     label: 'adapter-drift',
     ok: issues.length === 0,
@@ -276,6 +281,45 @@ async function checkAdapterDrift(cwd: string): Promise<CheckResult> {
         ? ['adapter outputs are in sync']
         : [...issues, 'run `bitacora sync` to regenerate adapter outputs'],
   };
+}
+
+async function collectOpenCodeConfigDrift(cwd: string, issues: string[]): Promise<void> {
+  const configContent = await readDriftTarget(cwd, 'opencode.json', issues);
+
+  if (configContent === undefined) {
+    return;
+  }
+
+  try {
+    const actualConfig = parseOpenCodeConfig(configContent);
+    const actualAgentValue = actualConfig.agent;
+
+    if (actualAgentValue !== undefined && !isJsonObject(actualAgentValue)) {
+      issues.push(
+        'cannot read drift target: opencode.json (opencode.json agent key must be a JSON object when present)'
+      );
+      return;
+    }
+
+    const actualAgents = readJsonObject(actualAgentValue);
+    const expectedAgents = await loadManagedOpenCodeAgents(cwd);
+
+    for (const agentName of OPENCODE_MANAGED_AGENT_NAMES) {
+      const actualAgent = actualAgents[agentName];
+      const expectedAgent = expectedAgents[agentName];
+
+      if (!isJsonObject(actualAgent) || expectedAgent === undefined) {
+        issues.push(`adapter drift detected: opencode.json#agent.${agentName}`);
+        continue;
+      }
+
+      if (!jsonValuesEqual(actualAgent, expectedAgent)) {
+        issues.push(`adapter drift detected: opencode.json#agent.${agentName}`);
+      }
+    }
+  } catch (error) {
+    issues.push(`cannot read drift target: opencode.json (${getErrorMessage(error)})`);
+  }
 }
 
 async function checkClaudePermissions(cwd: string): Promise<CheckResult> {
@@ -432,6 +476,39 @@ function isJsonObject(value: JsonValue | undefined): value is { [key: string]: J
 
 function hashContent(content: string): string {
   return createHash('sha256').update(content).digest('hex');
+}
+
+function jsonValuesEqual(left: JsonValue | undefined, right: JsonValue | undefined): boolean {
+  if (left === right) {
+    return true;
+  }
+
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+      return false;
+    }
+
+    return left.every((value, index) => jsonValuesEqual(value, right[index]));
+  }
+
+  if (isJsonObject(left) || isJsonObject(right)) {
+    if (!isJsonObject(left) || !isJsonObject(right)) {
+      return false;
+    }
+
+    const leftKeys = Object.keys(left);
+    const rightKeys = Object.keys(right);
+
+    if (leftKeys.length !== rightKeys.length) {
+      return false;
+    }
+
+    return leftKeys.every(
+      (key) => Object.hasOwn(right, key) && jsonValuesEqual(left[key], right[key])
+    );
+  }
+
+  return false;
 }
 
 async function pathExists(targetPath: string): Promise<boolean> {

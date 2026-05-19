@@ -1,4 +1,4 @@
-import { mkdtemp, rm, unlink, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -126,6 +126,99 @@ describe('runDoctorCommand', () => {
       expect(stdout).toContain('CLAUDE.md does not resolve to AGENTS.md');
       expect(stdout).toContain('GEMINI.md does not resolve to AGENTS.md');
       expect(stdout).toContain('adapter drift detected: .claude/agents/manager.md');
+      expect(stdout).toContain('run `bitacora sync`');
+    } finally {
+      await rm(workspaceDir, { recursive: true, force: true });
+    }
+  });
+
+  it('fails when a Bitacora-managed OpenCode config entry is missing', async () => {
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-doctor-opencode-missing-'));
+    let stdout = '';
+
+    try {
+      await runInitCommand({ cwd: workspaceDir, ...silentIo });
+
+      const opencodeConfig = JSON.parse(
+        await readFile(path.join(workspaceDir, 'opencode.json'), 'utf8')
+      );
+      delete opencodeConfig.agent.reviewer;
+      await writeFile(
+        path.join(workspaceDir, 'opencode.json'),
+        `${JSON.stringify(opencodeConfig, null, 2)}\n`
+      );
+
+      await expect(
+        runDoctorCommand({
+          cwd: workspaceDir,
+          writeStdout: (chunk) => {
+            stdout += chunk;
+          },
+        })
+      ).rejects.toMatchObject({ exitCode: 1 } satisfies Partial<BitacoraError>);
+
+      expect(stdout).toContain('[fail] adapter-drift');
+      expect(stdout).toContain('adapter drift detected: opencode.json#agent.reviewer');
+      expect(stdout).toContain('run `bitacora sync`');
+    } finally {
+      await rm(workspaceDir, { recursive: true, force: true });
+    }
+  });
+
+  it('fails when the Bitacora-managed OpenCode config file is missing', async () => {
+    const workspaceDir = await mkdtemp(
+      path.join(tmpdir(), 'bitacora-doctor-opencode-config-missing-')
+    );
+    let stdout = '';
+
+    try {
+      await runInitCommand({ cwd: workspaceDir, ...silentIo });
+      await unlink(path.join(workspaceDir, 'opencode.json'));
+
+      await expect(
+        runDoctorCommand({
+          cwd: workspaceDir,
+          writeStdout: (chunk) => {
+            stdout += chunk;
+          },
+        })
+      ).rejects.toMatchObject({ exitCode: 1 } satisfies Partial<BitacoraError>);
+
+      expect(stdout).toContain('[fail] adapter-drift');
+      expect(stdout).toContain('missing drift target: opencode.json');
+      expect(stdout).toContain('run `bitacora sync`');
+    } finally {
+      await rm(workspaceDir, { recursive: true, force: true });
+    }
+  });
+
+  it('fails when a Bitacora-managed OpenCode config entry drifts from canonical output', async () => {
+    const workspaceDir = await mkdtemp(path.join(tmpdir(), 'bitacora-doctor-opencode-drift-'));
+    let stdout = '';
+
+    try {
+      await runInitCommand({ cwd: workspaceDir, ...silentIo });
+
+      const opencodeConfig = JSON.parse(
+        await readFile(path.join(workspaceDir, 'opencode.json'), 'utf8')
+      );
+      opencodeConfig.agent.manager.mode = 'subagent';
+      await writeFile(
+        path.join(workspaceDir, 'opencode.json'),
+        `${JSON.stringify(opencodeConfig, null, 2)}\n`
+      );
+
+      await expect(
+        runDoctorCommand({
+          cwd: workspaceDir,
+          writeStdout: (chunk) => {
+            stdout += chunk;
+          },
+        })
+      ).rejects.toMatchObject({ exitCode: 1 } satisfies Partial<BitacoraError>);
+
+      expect(stdout).toContain('[fail] adapter-drift');
+      expect(stdout).toContain('adapter drift detected: opencode.json#agent.manager');
       expect(stdout).toContain('run `bitacora sync`');
     } finally {
       await rm(workspaceDir, { recursive: true, force: true });

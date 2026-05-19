@@ -127,7 +127,7 @@ export function mergeBitacoraOpenCodeAgents(
   };
 }
 
-function parseOpenCodeConfig(content: string): JsonObject {
+export function parseOpenCodeConfig(content: string): JsonObject {
   let parsedValue: unknown;
 
   try {
@@ -143,7 +143,7 @@ function parseOpenCodeConfig(content: string): JsonObject {
   return parsedValue;
 }
 
-async function loadManagedOpenCodeAgents(cwd: string): Promise<OpenCodeManagedAgents> {
+export async function loadManagedOpenCodeAgents(cwd: string): Promise<OpenCodeManagedAgents> {
   const managedAgents: OpenCodeManagedAgents = {};
   const seenAgentNames = new Set<OpenCodeManagedAgentName>();
 

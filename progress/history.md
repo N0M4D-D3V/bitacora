@@ -377,3 +377,20 @@ Do not edit previous entries. Only append new entries at the end.
 - **Outcome:** Feature `canonical_template_opencode_cleanup` is reviewer-approved, archived from `progress/current.md`, and marked `done`.
 
 ---
+
+## 2026-05-19 - Detect OpenCode JSON drift in doctor
+
+- **Agent:** `developer`
+- **Feature:** `F18 doctor_opencode_json_drift`
+- **Plan:** Inspect doctor drift architecture and existing OpenCode config generation helpers, add failing tests first for missing and drifted Bitacora-owned `opencode.json` entries in doctor, implement deterministic OpenCode JSON diagnostics with existing drift checks, and revalidate before and after reviewer follow-up.
+- **Changes:**
+  - Added doctor coverage for missing managed `opencode.json` entries, drifted managed agent runtime config, and the missing `opencode.json` file path.
+  - Extended `bitacora doctor` to compare Bitacora-owned `opencode.json` agent entries against canonical-derived OpenCode expectations while keeping diagnostics deterministic and read-only.
+  - Completed the reviewer-requested follow-up with test-only coverage for the missing `opencode.json` path because the approved implementation already reported that drift correctly.
+- **Verification:**
+  - In-session validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Re-review validation passed: `pnpm test:run`, `pnpm typecheck`, `pnpm lint`, and `pnpm build`.
+  - Verified feature 18 was the only active `in_progress` backlog item before closure.
+- **Outcome:** Feature `doctor_opencode_json_drift` is reviewer-approved, archived from `progress/current.md`, and marked `done`.
+
+---
